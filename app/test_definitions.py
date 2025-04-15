@@ -6,9 +6,10 @@ import time
 
 # Ethernet Tester
 class Eth0Test(UBootTester):
-    def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
+    def __init__(self, mac_addr=None, port='/dev/ttyUSB0', debug=False, log_callback=None):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
         # Define the setup and test commands for a Ethernet test
+        self.mac_addr = mac_addr
         self.setup_cmds = [
             'setenv ipaddr 192.168.0.218',
             'setenv serverip 192.168.0.1',
@@ -21,7 +22,8 @@ class Eth0Test(UBootTester):
     def run(self):
         try:
             self.connect()
-            img = create_label('080027001809', 'IG4-1000')
+            self._log(f"Creating label with {self.mac_addr}\n")
+            img = create_label(self.mac_addr, 'IG4-1000')
             # Define the target directory and file path for label
             output_dir = os.path.join(os.getcwd(), "img")
             output_path = os.path.join(output_dir, "label.png")

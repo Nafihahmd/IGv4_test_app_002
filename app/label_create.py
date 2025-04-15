@@ -3,8 +3,10 @@ from PIL import Image, ImageDraw, ImageFont
 
 def create_label(unit_id, model_number='', width=355, height=120):
     # Validate unit ID
-    if not isinstance(unit_id, str) or len(unit_id) != 12 or not unit_id.isdigit():
-        raise ValueError("Unit ID must be a 12-digit number")
+    if (not isinstance(unit_id, str) or 
+        len(unit_id) != 12 or 
+        not all(c in "0123456789abcdefABCDEF" for c in unit_id)):
+        raise ValueError("Unit ID must be a 12-character hexadecimal string")
 
     # Create combined data for QR code
     qr_data = f"Model:{model_number}\nUnitID:{unit_id}"

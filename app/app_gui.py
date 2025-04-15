@@ -10,6 +10,9 @@ class HardwareTestApp:
         
         # Default serial port (configurable via the menu)
         self.serial_port = "/dev/ttyUSB0"
+        self.model_number = "IG4-1000"
+        self.mac_addr = "00019D005000"
+
         
         # Store test results: "Pending", "PASS", or "FAIL"
         self.test_results = {}
@@ -40,14 +43,24 @@ class HardwareTestApp:
         """Creates a File menu with options to open/save results, configure test parameters, and access help."""
         menu_bar = Menu(self.root)
         
+        # File menu
         file_menu = Menu(menu_bar, tearoff=0)
-        file_menu.add_command(label="Open Test Results", command=self.open_results)
-        file_menu.add_command(label="Save Test Results", command=self.save_results)
+        file_menu.add_command(label="Open Results", command=self.open_results)
+        file_menu.add_command(label="Save Results", command=self.save_results)
         file_menu.add_separator()
-        file_menu.add_command(label="Configure Test Parameters", command=self.configure_parameters)
-        file_menu.add_separator()
-        file_menu.add_command(label="Help", command=self.show_help)
+        file_menu.add_command(label="Exit", command=self.root.quit)
         menu_bar.add_cascade(label="File", menu=file_menu)
+
+        # Configure menu
+        menu_bar.add_command(label="Configure", command=self.configure_parameters)
+
+        # Help Menu
+        help_menu = Menu(menu_bar, tearoff=0)
+        help_menu.add_command(label="Help", command=self.show_help)
+        # help_menu.add_command(label="About", command=self.show_about)
+        help_menu.add_separator()
+        # help_menu.add_command(label="Contact Support", command=self.contact_support)
+        menu_bar.add_cascade(label="Help", menu=help_menu)
         
         self.root.config(menu=menu_bar)
     
@@ -158,7 +171,10 @@ class HardwareTestApp:
             self.disable_user_input()
             # Instantiate the test class passing the current serial port.
             test_class = selected_test["class"]
-            tester = test_class(port=self.serial_port, debug=True, log_callback=self.log_message)
+            if test_class is Eth0Test:
+                tester = test_class(port=self.serial_port,  mac_addr=self.mac_addr, debug=True, log_callback=self.log_message)
+            else:
+                tester = test_class(port=self.serial_port, debug=True, log_callback=self.log_message)
             # Running the test (this call is blocking—use caution if test duration is long)
             success = tester.run()
             self.complete_test(test_name, success)
@@ -236,13 +252,61 @@ class HardwareTestApp:
         self.status_label.config(text="Select a test to view details")
     
     def configure_parameters(self):
-        """Allow the user to change test parameters (e.g., serial port)."""
-        port = simpledialog.askstring("Configure Serial Port",
-                                      "Enter serial port (e.g., /dev/ttyUSB0):",
-                                      initialvalue=self.serial_port)
-        if port:
-            self.serial_port = port
-            messagebox.showinfo("Configure Parameters", f"Serial port set to {self.serial_port}")
+        """Popup a window to allow user to edit MAC address, serial port, and model number simultaneously."""
+        
+        # Create a new Toplevel window (acts as a modal dialog)
+        window = tk.Toplevel(self.root)
+        window.title("Configure Test Parameters")
+        
+        # --- MAC Address field (first parameter) ---
+        tk.Label(window, text="MAC Address:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
+        mac_entry = tk.Entry(window, width=30)
+        mac_entry.insert(0, self.mac_addr)  # Pre-fill with the current MAC address
+        mac_entry.grid(row=0, column=1, padx=5, pady=5)
+        
+        # --- Serial Port field ---
+        tk.Label(window, text="Serial Port:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
+        serial_entry = tk.Entry(window, width=30)
+        serial_entry.insert(0, self.serial_port)
+        serial_entry.grid(row=1, column=1, padx=5, pady=5)
+        
+        # --- Model Number field ---
+        tk.Label(window, text="Model Number:").grid(row=2, column=0, sticky="e", padx=5, pady=5)
+        model_entry = tk.Entry(window, width=30)
+        model_entry.insert(0, self.model_number)
+        model_entry.grid(row=2, column=1, padx=5, pady=5)
+        
+        # --- OK Button to save changes ---
+        def on_ok():
+            self.mac_addr = mac_entry.get()
+            self.serial_port = serial_entry.get()
+            self.model_number = model_entry.get()
+            # Optionally, you can show a message box or log the changes
+            # For example:
+            # messagebox.showinfo("Parameters Set",
+            #                     f"MAC Address: {self.mac_addr}\n"
+            #                     f"Serial Port: {self.serial_port}\n"
+            #                     f"Model Number: {self.model_number}")
+            window.destroy()
+
+        tk.Button(window, text="OK", command=on_ok).grid(row=3, column=0, columnspan=2, pady=10)
+        
+        # Update window to ensure its size is computed.
+        window.update_idletasks()
+
+        # Calculate position: top center relative to self.root
+        root_x = self.root.winfo_x()
+        root_y = self.root.winfo_y()
+        root_width = self.root.winfo_width()
+        win_width = window.winfo_reqwidth()
+        # Place the popup centered horizontally relative to the main window,
+        # and at the top (or a few pixels offset from the top).
+        x = root_x + (root_width // 2) - (win_width // 2)
+        y = root_y + 10  # 10 pixels below the top edge of the main window
+        window.geometry(f"+{x}+{y}")
+
+        # Make the window modal
+        window.grab_set()
     
     def show_help(self):
         """Display help information."""
