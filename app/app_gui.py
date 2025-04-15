@@ -321,19 +321,21 @@ class HardwareTestApp:
         self.connect_serial()
     
     def connect_serial(self):
-        """Attempt to open the serial port. Update the reconnect indicator accordingly."""
+        """Attempt to open the serial port and wait for U-Boot prompt before showing device as connected."""
         try:
             if self.serial_conn:
                 self.serial_conn.close()
             import serial  # Import here since pyserial is needed for connecting
-            self.serial_conn = serial.Serial(self.serial_port, baudrate=115200, timeout=0.1)
-            self.status_text.config(text="Connected")
-            self.update_reconnect_indicator(True)
+            self.serial_conn = serial.Serial(self.serial_port, baudrate=9600, timeout=0.1)
+            self.status_text.config(text="Waiting for U-Boot prompt...")
+            # Initially, do not mark as connected (use red indicator)
+            self.update_reconnect_indicator(False)
             self.root.after(100, self.check_uboot_prompt)
         except Exception:
             self.serial_conn = None
             self.status_text.config(text="Disconnected")
             self.update_reconnect_indicator(False)
+
     
     def update_reconnect_indicator(self, connected):
         """Update the reconnect indicator (green if connected, red if not)."""
@@ -343,16 +345,19 @@ class HardwareTestApp:
     def check_uboot_prompt(self):
         """
         Look for the "Hit any key to stop autoboot:" prompt.
-        If found, send a key to interrupt autoboot.
+        When found, send a key to interrupt autoboot and update the status to 'device connected'.
         """
         if self.serial_conn and self.serial_conn.in_waiting:
             try:
                 line = self.serial_conn.readline().decode("utf-8", errors="ignore")
                 if "Hit any key to stop autoboot:" in line:
                     self.serial_conn.write(b'\n')
-                    self.status_text.config(text="U-Boot detected, autoboot stopped")
+                    self.status_text.config(text="U-Boot detected; device connected")
+                    self.update_reconnect_indicator(True)
             except Exception as e:
                 print("Error reading serial:", e)
+        self.root.after(100, self.check_uboot_prompt)
+
     
     def check_serial(self):
         """
