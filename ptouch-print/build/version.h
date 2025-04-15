@@ -1,0 +1,5 @@
+#define GIT_BRANCH "master"
+#define GIT_COMMIT "aa5392b"
+#define GIT_COMMITS "0"
+#define GIT_TAG "v1.6"
+#define VERSION "v1.6.r0.gaa5392b"

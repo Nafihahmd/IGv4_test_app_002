@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/ptouch-print.dir/src/libptouch.c.o CMakeFiles/ptouch-print.dir/src/ptouch-print.c.o -o ptouch-print  /usr/lib/x86_64-linux-gnu/libgd.so /usr/lib/x86_64-linux-gnu/libpng.so /usr/lib/x86_64-linux-gnu/libz.so /usr/lib/x86_64-linux-gnu/libjpeg.so -lusb-1.0 /usr/lib/x86_64-linux-gnu/libusb-1.0.so 
