@@ -1,1 +1,3 @@
 *.Identifier
+*.pyc
+img/*

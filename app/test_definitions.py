@@ -23,7 +23,7 @@ class Eth0Test(UBootTester):
         try:
             self.connect()
             self._log(f"Creating label with {self.mac_addr}\n")
-            img = create_label(self.mac_addr, 'IG4-1000')
+            # img = create_label(self.mac_addr, 'IG4-1000')
             # Define the target directory and file path for label
             output_dir = os.path.join(os.getcwd(), "img")
             output_path = os.path.join(output_dir, "label.png")
