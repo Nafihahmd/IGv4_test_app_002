@@ -1,5 +1,0 @@
-Ethernet Test: FAIL
-USB Test: PASS
-RTC Test: PASS
-Xbee Test: FAIL
-Battery Test: FAIL
