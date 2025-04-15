@@ -231,7 +231,7 @@ class HardwareTestApp:
         The default filename is configurable.
         After saving, the tests are reset for a new device.
         """
-        default_filename = "test_results.txt"  # Configurable default filename.
+        default_filename = self.mac_addr + ".txt"  # Configurable default filename.
         file_path = filedialog.asksaveasfilename(defaultextension=".txt",
                                                  initialfile=default_filename,
                                                  filetypes=[("Text Files", "*.txt")])
