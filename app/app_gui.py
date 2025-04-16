@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, Menu, simpledialog
-from test_definitions import Eth0Test, USBTest, RTCTest, XbeeTest, BatteryTest  # Importing our test classes
+from test_definitions import Eth0Test, USBTest, RTCTest, XbeeTest, BatteryTest, RelayTest  # Importing our test classes
 
 class HardwareTestApp:
     def __init__(self, root):
@@ -24,7 +24,7 @@ class HardwareTestApp:
             {"name": "RTC Test", "requires_input": False, "class": RTCTest},
             {"name": "Xbee Test", "requires_input": False, "class": XbeeTest},
             {"name": "Battery Test", "requires_input": False, "class": BatteryTest},
-            # {"name": "LED Test", "requires_input": True, "class": LedTest},
+            {"name": "Relay Test", "requires_input": True, "class": RelayTest},
             # {"name": "Button Test", "requires_input": False, "class": ButtonTest},
         ]
         
@@ -167,7 +167,11 @@ class HardwareTestApp:
         if selected_test["requires_input"]:
             # For tests like LED test: Show manual input UI.
             self.enable_user_input()
+            # Instantiate the test class passing the current serial port.
+            test_class = selected_test["class"]
             self.status_label.config(text=f"{test_name} requires manual verification.\nClick Pass or Fail when ready.")
+            tester = test_class(port=self.serial_port, debug=True, log_callback=self.log_message)
+            tester.run()
         else:
             self.disable_user_input()
             # Instantiate the test class passing the current serial port.
@@ -205,12 +209,14 @@ class HardwareTestApp:
     
     def user_pass(self):
         """User marks a manual test as passed."""
-        current_test = self.status_label.cget("text").split(" ")[0]
+        current_text = self.status_label.cget("text")
+        current_test = current_text.split("requires")[0].strip()
         self.complete_test(current_test, True)
     
     def user_fail(self):
         """User marks a manual test as failed."""
-        current_test = self.status_label.cget("text").split(" ")[0]
+        current_text = self.status_label.cget("text")
+        current_test = current_text.split("requires")[0].strip()
         self.complete_test(current_test, False)
     
     def prompt_save_results(self):

@@ -117,7 +117,7 @@ class XbeeTest(UBootTester):
             self.connect()
             success = self.run_xbee_test_case(self.setup_cmds, 2)
         except Exception as e:
-            print("Error during RTC test:", e)
+            print("Error during Xbee test:", e)
             success = False
         finally:
             self.disconnect()
@@ -139,7 +139,31 @@ class BatteryTest(UBootTester):
             self.connect()
             success = self.run_batt_test_case(self.setup_cmds, 10)
         except Exception as e:
-            print("Error during RTC test:", e)
+            print("Error during Battery test:", e)
+            success = False
+        finally:
+            self.disconnect()
+        return success
+    
+# RelayTest
+class RelayTest(UBootTester):
+    def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
+        super().__init__(port=port, debug=debug, log_callback=log_callback)
+        print("Initializing Relay Test")
+        # Define the setup and test commands for a USB test
+        self.setup_cmds = 'gpio toggle 166'
+
+    def run(self):
+        try:
+            self.connect()
+            # success = self.run_batt_test_case(self.setup_cmds, 10)
+            for i in range(3):
+                self.send_command_quick(self.setup_cmds)
+                self._log("Relay toggled, (can you hear?)\n")
+                time.sleep(1.0)
+            return True
+        except Exception as e:
+            print("Error during Relay test:", e)
             success = False
         finally:
             self.disconnect()
