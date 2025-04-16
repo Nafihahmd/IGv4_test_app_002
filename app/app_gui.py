@@ -12,6 +12,7 @@ class HardwareTestApp:
         self.serial_port = "/dev/ttyUSB0"
         self.model_number = "IG4-1000"
         self.mac_addr = "00019D005000"
+        self.server_ip = "192.168.0.1"
 
         
         # Store test results: "Pending", "PASS", or "FAIL"
@@ -172,7 +173,7 @@ class HardwareTestApp:
             # Instantiate the test class passing the current serial port.
             test_class = selected_test["class"]
             if test_class is Eth0Test:
-                tester = test_class(port=self.serial_port,  mac_addr=self.mac_addr, debug=True, log_callback=self.log_message)
+                tester = test_class(port=self.serial_port,  mac_addr=self.mac_addr,  server_ip=self.server_ip, debug=True, log_callback=self.log_message)
             else:
                 tester = test_class(port=self.serial_port, debug=True, log_callback=self.log_message)
             # Running the test (this call is blocking—use caution if test duration is long)
@@ -264,32 +265,40 @@ class HardwareTestApp:
         mac_entry.insert(0, self.mac_addr)  # Pre-fill with the current MAC address
         mac_entry.grid(row=0, column=1, padx=5, pady=5)
         
+        # --- Server IP Address field ---
+        tk.Label(window, text="Server IP:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
+        sip_entry = tk.Entry(window, width=30)
+        sip_entry.insert(0, self.server_ip)  # Pre-fill with the current IP address
+        sip_entry.grid(row=1, column=1, padx=5, pady=5)
+
         # --- Serial Port field ---
-        tk.Label(window, text="Serial Port:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(window, text="Serial Port:").grid(row=2, column=0, sticky="e", padx=5, pady=5)
         serial_entry = tk.Entry(window, width=30)
         serial_entry.insert(0, self.serial_port)
-        serial_entry.grid(row=1, column=1, padx=5, pady=5)
+        serial_entry.grid(row=2, column=1, padx=5, pady=5)
         
         # --- Model Number field ---
-        tk.Label(window, text="Model Number:").grid(row=2, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(window, text="Model Number:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
         model_entry = tk.Entry(window, width=30)
         model_entry.insert(0, self.model_number)
-        model_entry.grid(row=2, column=1, padx=5, pady=5)
+        model_entry.grid(row=3, column=1, padx=5, pady=5)
         
         # --- OK Button to save changes ---
         def on_ok():
             self.mac_addr = mac_entry.get()
+            self.server_ip = sip_entry.get()
             self.serial_port = serial_entry.get()
             self.model_number = model_entry.get()
             # Optionally, you can show a message box or log the changes
             # For example:
             # messagebox.showinfo("Parameters Set",
             #                     f"MAC Address: {self.mac_addr}\n"
+            #                     f"IP Address: {self.server_ip}\n"
             #                     f"Serial Port: {self.serial_port}\n"
             #                     f"Model Number: {self.model_number}")
             window.destroy()
 
-        tk.Button(window, text="OK", command=on_ok).grid(row=3, column=0, columnspan=2, pady=10)
+        tk.Button(window, text="OK", command=on_ok).grid(row=4, column=0, columnspan=2, pady=10)
         
         # Update window to ensure its size is computed.
         window.update_idletasks()

@@ -38,9 +38,9 @@ class UBootTester:
             raise Exception("Serial port not open")
 
         self.ser.write((command + '\r\n').encode())
-        time.sleep(0.1)
+        time.sleep(0.2)
 
-        end_time = time.time() + 0.1
+        end_time = time.time() + 0.2
         while time.time() < end_time:
             if self.ser.in_waiting:
                 self._log(".")

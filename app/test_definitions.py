@@ -6,24 +6,28 @@ import time
 
 # Ethernet Tester
 class Eth0Test(UBootTester):
-    def __init__(self, mac_addr=None, port='/dev/ttyUSB0', debug=False, log_callback=None):
+    def __init__(self, mac_addr=None, server_ip=None, port='/dev/ttyUSB0', debug=False, log_callback=None):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
         # Define the setup and test commands for a Ethernet test
         self.mac_addr = mac_addr
+        self.server_ip = server_ip
+        formatted_mac = ":".join(self.mac_addr[i:i+2] for i in range(0, 12, 2))
         self.setup_cmds = [
+            f'setenv ethaddr {formatted_mac}',
+            f'setenv bootargs "console=ttyS0,115200 ethaddr0={formatted_mac}"',
             'setenv ipaddr 192.168.0.218',
-            'setenv serverip 192.168.0.1',
+            f'setenv serverip {self.server_ip}',
             'setenv netmask 255.255.255.0',
             'saveenv',
         ]
-        self.test_cmd = 'ping 192.168.0.1'
+        self.test_cmd = f'ping {self.server_ip}'
         self.expect = 'host 192.168.0.1 is alive'
 
     def run(self):
         try:
             self.connect()
             self._log(f"Creating label with {self.mac_addr}\n")
-            # img = create_label(self.mac_addr, 'IG4-1000')
+            img = create_label(self.mac_addr, 'IG4-1000')
             # Define the target directory and file path for label
             output_dir = os.path.join(os.getcwd(), "img")
             output_path = os.path.join(output_dir, "label.png")
@@ -34,6 +38,7 @@ class Eth0Test(UBootTester):
 
             # result = subprocess.run(["sudo chmod -R 777 /dev/bus/usb/"], capture_output=True, text=True)
             # time.sleep(0.5)
+            #Commenting out the printing command for testing
             subprocess.run([
                 "ptouch-print/build/ptouch-print",
                 "--image",
