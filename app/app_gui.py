@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, Menu, simpledialog
 from test_definitions import Eth0Test, USBTest, RTCTest, XbeeTest, BatteryTest, RelayTest  # Importing our test classes
+from excel_writer import append_test_results # Importing the function to log results to Excel
 
 class HardwareTestApp:
     def __init__(self, root):
@@ -49,6 +50,7 @@ class HardwareTestApp:
         file_menu.add_command(label="Open Results", command=self.open_results)
         file_menu.add_command(label="Save Results", command=self.save_results)
         file_menu.add_separator()
+        file_menu.add_command(label="Reset", command=self.reset_tests)
         file_menu.add_command(label="Exit", command=self.root.quit)
         menu_bar.add_cascade(label="File", menu=file_menu)
 
@@ -238,16 +240,17 @@ class HardwareTestApp:
         The default filename is configurable.
         After saving, the tests are reset for a new device.
         """
-        default_filename = self.mac_addr + ".txt"  # Configurable default filename.
-        file_path = filedialog.asksaveasfilename(defaultextension=".txt",
-                                                 initialfile=default_filename,
-                                                 filetypes=[("Text Files", "*.txt")])
-        if file_path:
-            with open(file_path, "w") as f:
-                for test, result in self.test_results.items():
-                    f.write(f"{test}: {result}\n")
-            messagebox.showinfo("Save Results", "Test results saved successfully.")
-            self.reset_tests()
+        # default_filename = self.mac_addr + ".txt"  # Configurable default filename.
+        # file_path = filedialog.asksaveasfilename(defaultextension=".txt",
+        #                                          initialfile=default_filename,
+        #                                          filetypes=[("Text Files", "*.txt")])
+        # if file_path:
+        #     with open(file_path, "w") as f:
+        #         for test, result in self.test_results.items():
+        #             f.write(f"{test}: {result}\n")
+        #     messagebox.showinfo("Save Results", "Test results saved successfully.")
+        append_test_results(self.test_results, self.mac_addr)
+        self.reset_tests()
     
     def reset_tests(self):
         """Reset all tests for the next device."""
