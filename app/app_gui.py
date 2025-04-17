@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, Menu, simpledialog
 from test_definitions import Eth0Test, USBTest, RTCTest, XbeeTest, BatteryTest, RelayTest  # Importing our test classes
-from excel_writer import append_test_results # Importing the function to log results to Excel
+from excel_writer import append_test_results, get_next_available_mac
 
 class HardwareTestApp:
     def __init__(self, root):
@@ -12,7 +12,11 @@ class HardwareTestApp:
         # Default serial port (configurable via the menu)
         self.serial_port = "/dev/ttyUSB0"
         self.model_number = "IG4-1000"
-        self.mac_addr = "00019D005000"
+        self.mac_addr = get_next_available_mac(False)
+        if self.mac_addr is None:
+            # Handle the case where no MAC address is available
+            print("Warning: No available MAC address found!")
+
         self.server_ip = "192.168.0.1"
 
         
@@ -179,6 +183,7 @@ class HardwareTestApp:
             # Instantiate the test class passing the current serial port.
             test_class = selected_test["class"]
             if test_class is Eth0Test:
+                self.mac_addr = get_next_available_mac(False)  # Read the MAC address from the Excel file
                 tester = test_class(port=self.serial_port,  mac_addr=self.mac_addr,  server_ip=self.server_ip, debug=True, log_callback=self.log_message)
             else:
                 tester = test_class(port=self.serial_port, debug=True, log_callback=self.log_message)
@@ -250,6 +255,8 @@ class HardwareTestApp:
         #             f.write(f"{test}: {result}\n")
         #     messagebox.showinfo("Save Results", "Test results saved successfully.")
         append_test_results(self.test_results, self.mac_addr)
+        # Get a new mac address for the next device
+        self.mac_addr = get_next_available_mac(True)
         self.reset_tests()
     
     def reset_tests(self):
@@ -269,6 +276,7 @@ class HardwareTestApp:
         window.title("Configure Test Parameters")
         
         # --- MAC Address field (first parameter) ---
+        self.mac_addr = get_next_available_mac(False)  # Read the MAC address from the Excel file
         tk.Label(window, text="MAC Address:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
         mac_entry = tk.Entry(window, width=30)
         mac_entry.insert(0, self.mac_addr)  # Pre-fill with the current MAC address

@@ -2,3 +2,5 @@
 *.pyc
 img/*
 *.txt
+test_results.xlsx
+mac_addr.xlsx
