@@ -209,8 +209,8 @@ class HardwareTestApp:
         self.log_message(f"{test_name} completed: {result_str}") #Show result in log also
         self.disable_user_input()
         
-        # If all tests (automatic ones) have finished, prompt to save results.
-        if all(res in ["PASS", "FAIL"] or (res == "Pending" and t["requires_input"])
+        # If all tests have finished, prompt to save results.
+        if all(res in ["PASS", "FAIL"]
                for t, res in zip(self.tests, self.test_results.values())):
             self.prompt_save_results()
     
