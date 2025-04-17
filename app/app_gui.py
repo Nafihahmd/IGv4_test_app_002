@@ -2,6 +2,9 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, Menu, simpledialog
 from test_definitions import Eth0Test, USBTest, RTCTest, XbeeTest, BatteryTest, RelayTest  # Importing our test classes
 from excel_writer import append_test_results, get_next_available_mac
+from label_create import create_label
+import os
+import subprocess
 
 class HardwareTestApp:
     def __init__(self, root):
@@ -238,6 +241,25 @@ class HardwareTestApp:
             with open(file_path, "r") as f:
                 data = f.read()
             messagebox.showinfo("Test Results", data)
+
+    def print_label(self):
+        self.status_label.config(text=f"Creating label with {self.mac_addr}\n")
+        # self._log(f"Creating label with {self.mac_addr}\n")
+        img = create_label(self.mac_addr, 'IG4-1000')
+        # Define the target directory and file path for label
+        output_dir = os.path.join(os.getcwd(), "img")
+        output_path = os.path.join(output_dir, "label.png")
+
+        os.makedirs(output_dir, exist_ok=True)
+        img.save(output_path)
+        self.status_label.config(text="Label created. Printing...\n")
+
+        # result = subprocess.run(["sudo chmod -R 777 /dev/bus/usb/"], capture_output=True, text=True)
+        subprocess.run([
+            "ptouch-print/build/ptouch-print",
+            "--image",
+            "img/label.png"
+        ])
     
     def save_results(self):
         """
@@ -257,6 +279,7 @@ class HardwareTestApp:
         append_test_results(self.test_results, self.mac_addr)
         # Get a new mac address for the next device
         self.mac_addr = get_next_available_mac(True)
+        self.print_label()
         self.reset_tests()
     
     def reset_tests(self):

@@ -1,7 +1,4 @@
 from uboot_tester import UBootTester
-from label_create import create_label
-import os
-import subprocess
 import time
 
 # Ethernet Tester
@@ -26,25 +23,7 @@ class Eth0Test(UBootTester):
     def run(self):
         try:
             self.connect()
-            self._log(f"Creating label with {self.mac_addr}\n")
-            img = create_label(self.mac_addr, 'IG4-1000')
-            # Define the target directory and file path for label
-            output_dir = os.path.join(os.getcwd(), "img")
-            output_path = os.path.join(output_dir, "label.png")
-
-            os.makedirs(output_dir, exist_ok=True)
-            img.save(output_path)
-            self._log("Label created. Printing...\n")
-
-            # result = subprocess.run(["sudo chmod -R 777 /dev/bus/usb/"], capture_output=True, text=True)
-            # time.sleep(0.5)
-            #Commenting out the printing command for testing
-            subprocess.run([
-                "ptouch-print/build/ptouch-print",
-                "--image",
-                "img/label.png"
-            ])
-            time.sleep(0.5)
+           
             # self._log(result.stdout)
 
             success = self.run_test_case(self.setup_cmds, self.test_cmd, self.expect)
