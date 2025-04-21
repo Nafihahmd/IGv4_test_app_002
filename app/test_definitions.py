@@ -11,7 +11,7 @@ class Eth0Test(UBootTester):
         formatted_mac = ":".join(self.mac_addr[i:i+2] for i in range(0, 12, 2))
         self.setup_cmds = [
             f'setenv ethaddr {formatted_mac}',
-            f'setenv bootargs "console=ttyS0,115200 ethaddr0={formatted_mac}"',
+            f'setenv bootargs "console=ttyS1,9600 ethaddr0={formatted_mac}"',
             'setenv ipaddr 192.168.0.218',
             f'setenv serverip {self.server_ip}',
             'setenv netmask 255.255.255.0',
@@ -51,6 +51,9 @@ class USBTest(UBootTester):
         try:
             self.connect()
             success = self.run_test_case(self.setup_cmds, self.test_cmd, self.expect)
+            time.sleep(0.5)
+            # Stop the USB test
+            self.send_command_quick('usb stop')
         except Exception as e:
             print("Error during USB test:", e)
             success = False
@@ -84,10 +87,10 @@ class XbeeTest(UBootTester):
         print("Initializing Xbee Test")
         # Define the setup and test commands for a USB test
         self.setup_cmds = [
-            'setenv stdin nuc980_serial0,nuc980_serial2',
-            'setenv stdout nuc980_serial0,nuc980_serial2',
-            'setenv stdin nuc980_serial0',
-            'setenv stdout nuc980_serial0',
+            'setenv stdin nuc980_serial1,nuc980_serial2',
+            'setenv stdout nuc980_serial1,nuc980_serial2',
+            'setenv stdin nuc980_serial1',
+            'setenv stdout nuc980_serial1',
         ]
         # self.test_cmd = 'AT\r'
 
@@ -143,6 +146,28 @@ class RelayTest(UBootTester):
             return True
         except Exception as e:
             print("Error during Relay test:", e)
+            success = False
+        finally:
+            self.disconnect()
+        return success
+    
+    
+# SIMTest
+class SIMTest(UBootTester):
+    def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
+        super().__init__(port=port, debug=debug, log_callback=log_callback)
+        print("Initializing SIM Test")
+        self.setup_cmds = []           # No extra setup needed
+        self.test_cmd = "boot"         # U-Boot boot command
+        self.expect  = "kmodloader: done loading kernel modules from /etc/modules.d/*"
+        self.shell_prompt = "root@(none):"  # Adjust based on your DUT's prompt
+
+    def run(self):
+        try:
+            self.connect()
+            success = self.run_sim_test_case(self.setup_cmds,  self.test_cmd, self.expect, self.shell_prompt, 10)
+        except Exception as e:
+            print("Error during Battery test:", e)
             success = False
         finally:
             self.disconnect()

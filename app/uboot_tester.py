@@ -210,3 +210,78 @@ class UBootTester:
             return True
         else:
             return False
+        
+# SIM tester
+    def run_sim_test_case(self, setup_cmds, test_cmd, expect, shell_prompt, wait_time=10):
+        self.connect()
+        # 1) Issue the boot command
+        self._log(f">>> Sending boot command\n")
+        self.ser.write((test_cmd + '\r\n').encode())
+
+        # 2) Wait for OpenWRT to finish loading modules
+        self._log(">>> Waiting for OpenWRT modules to finish loading...\n")
+        if not self._wait_for_expected(expect, timeout=300):
+            self._log(">>> ERROR: Timed out waiting for kmodloader\n")
+            return False
+
+        # 3) Get a shell prompt
+        self._log(">>> Sending Enter to get shell prompt...\n")
+        self.ser.write(b'\r\n')
+        # Wait for shell prompt
+        if not self._wait_for_expected(shell_prompt, timeout=120):
+            self._log(">>> ERROR: Timed out waiting for shell prompt\n")
+            return False
+
+        # 4) Set up ttyUSB2 and send AT commands
+        self._log(">>> Configuring /dev/ttyUSB2 and sending AT commands...\n")
+        # Set baud rate (adjust if necessary)
+        # self.ser.write(b'stty -F /dev/ttyUSB2 115200 cs8 -cstopb -parenb\r\n')
+        time.sleep(0.1)
+        
+        # Start background process to read from ttyUSB2
+        self.ser.write(b'cat /dev/ttyUSB2 &\r\n')
+        time.sleep(0.1)  # Allow time for background process to start
+
+        # Send AT commands
+        self.ser.write(b'echo -e "AT\\r" > /dev/ttyUSB2\r\n')
+        time.sleep(0.1)
+        self.ser.write(b'echo -e "AT+CCID\\r" > /dev/ttyUSB2\r\n')
+        time.sleep(0.1)
+
+        # 5) Capture output and check for responses
+        output = self._read_serial(timeout=10)
+        # self._log(f"Output received:\n{output}")   #Uncomment for debugging
+
+        # Check for the CCID pattern (e.g., "+CCID: 89919509129689902417")
+        ccid_pattern = r'\+CCID:\s*\d+'  # Matches "+CCID:" followed by optional whitespace and digits
+        match = re.search(ccid_pattern, output)
+
+        if match:
+            self._log(f">>> SIM card detected (CCID: {match.group()})\n")
+            return True
+        else:
+            self._log(">>> ERROR: SIM card not detected (no valid CCID found)\n")
+            return False
+
+    def _wait_for_expected(self, expect_pattern, timeout=30):
+        """Wait for expected pattern in serial output."""
+        end_time = time.time() + timeout
+        while time.time() < end_time:
+            line = self.ser.readline().decode('utf-8', errors='ignore')
+            if line:
+                if self.debug:
+                    print(line.strip())
+                if expect_pattern in line:
+                    return True
+        return False
+
+    def _read_serial(self, timeout=10):
+        """Read all available serial data for a specified duration."""
+        output = []
+        end_time = time.time() + timeout
+        while time.time() < end_time:
+            if self.ser.in_waiting > 0:
+                data = self.ser.read(self.ser.in_waiting).decode(errors='ignore')
+                output.append(data)
+            time.sleep(0.1)
+        return ''.join(output)
