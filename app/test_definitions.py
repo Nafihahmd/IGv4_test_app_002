@@ -10,7 +10,6 @@ class Eth0Test(UBootTester):
         self.server_ip = server_ip
         formatted_mac = ":".join(self.mac_addr[i:i+2] for i in range(0, 12, 2))
         self.setup_cmds = [
-            'mii write 3 0x17 0x0061',
             f'setenv ethaddr {formatted_mac}',
             f'setenv bootargs "console=ttyS1,9600 ethaddr0={formatted_mac}"',
             'setenv ipaddr 192.168.0.218',
