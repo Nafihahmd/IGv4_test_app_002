@@ -17,8 +17,8 @@ class Eth0Test(UBootTester):
             'setenv netmask 255.255.255.0',
             'saveenv',
         ]
-        self.test_cmd = f'ping {self.server_ip}'
-        self.expect = 'host 192.168.0.1 is alive'
+        self.test_cmd = f'dhcp'
+        self.expect = 'DHCP client bound to address'
 
     def run(self):
         try:

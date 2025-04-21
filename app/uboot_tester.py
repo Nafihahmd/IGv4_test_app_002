@@ -66,6 +66,7 @@ class UBootTester:
                 output += chunk
                 self._debug_print(chunk.decode(errors='ignore'))
                 if expect.encode() in output:
+                    self.ser.write(b'\x03')  # Send Ctrl+C to stop the command
                     return output.decode(), True
             time.sleep(0.2)
 
