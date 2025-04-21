@@ -129,8 +129,8 @@ class RelayTest(UBootTester):
     def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
         print("Initializing Relay Test")
-        # Define the setup and test commands for a USB test
-        self.setup_cmds = 'gpio toggle 166'
+        # Define the setup and test commands for a Relay test
+        self.setup_cmds = 'gpio toggle 166' # GPIO PF.6
 
     def run(self):
         try:
