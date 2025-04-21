@@ -186,15 +186,15 @@ class UBootTester:
             self.send_command_quick(cmd)
 
         time.sleep(.2)   # Guard time
-        # self._log("Remove power, checking Power fail:\n")
+        self._log("Remove power, checking Power fail:\n")
         self.ser.write(('\n').encode())
         for i in range(wait_time, 0, -1):
-            self._log(f"Checking whether battery is charging (timeout in {i}s)\n")            
-            self.ser.write(('gpio input 8\n').encode())
+            self._log(f"Waiting for power removal (auto timeout in {i} seconds)\n")            
+            self.ser.write(('gpio input 201\n').encode())
             output = self.ser.read(self.ser.in_waiting)
             output_decoded = output.decode(errors='ignore')
             if "value is 0" in output_decoded:
-                self._log("Battery is charging\n")
+                self._log("Power fail detected\n")
                 break
             time.sleep(1)
             

@@ -112,8 +112,8 @@ class BatteryTest(UBootTester):
         print("Initializing Battery Test")
         # Define the setup and test commands for a Battery test
         self.setup_cmds = [
-            'mw 0xb0004070 0x10000',    # Enable pullup on PA.8
-            'md 0xb0004070 1',          # Read back to check if it is set
+            'mw 0xb00041b0 0x40000',    # Enable pullup on PG.9
+            'md 0xb00041b0 1',      # Read back to check if it is set
         ]
 
     def run(self):
