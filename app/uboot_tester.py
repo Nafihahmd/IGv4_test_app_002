@@ -297,7 +297,7 @@ class UBootTester:
         self._log(f"Output received:\n{output}")   #Uncomment for debugging
 
         # 2) Check MPCIe slot 1
-        if expect[1] not in output:
+        if expect[0] not in output:
             self._log(">>> ERROR: no SimCOM device found\n")
             return False
         self._log("[.] Found SIMCom USB\n")
