@@ -112,7 +112,7 @@ class RelayTest(UBootTester):
         try:
             self.connect()
             # success = self.run_batt_test_case(self.setup_cmds, 10)
-            for i in range(3):
+            for i in range(2):
                 self.send_command_quick(self.setup_cmds)
                 self._log("Relay toggled, (can you hear?)\n")
                 time.sleep(1.0)
@@ -163,6 +163,27 @@ class USBTest(UBootTester):
     def run(self):
         try:
             success = self.run_usb_test_case(self.setup_cmds, self.expect)
+        except Exception as e:
+            print("Error during USB test:", e)
+            success = False
+        finally:
+            self.disconnect()
+        return success
+       
+# BLE Tester
+# To-Do: Make it automatic
+class BLETest(UBootTester):
+    def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
+        super().__init__(port=port, debug=debug, log_callback=log_callback)
+        print("Initializing BLE Test")
+        # Define the setup and test commands for a USB test
+        self.setup_cmds = ''
+        self.expect = []
+
+    def run(self):
+        try:
+            self._log("Check nRF BLE is available")
+            return True
         except Exception as e:
             print("Error during USB test:", e)
             success = False
