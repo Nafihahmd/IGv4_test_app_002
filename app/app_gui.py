@@ -28,12 +28,12 @@ class HardwareTestApp:
         # Test definitions are stored here along with the reference to the test class.
         self.tests = [
             {"name": "Ethernet Test", "requires_input": False, "class": Eth0Test},
-            {"name": "USB Test", "requires_input": False, "class": USBTest},
             {"name": "RTC Test", "requires_input": False, "class": RTCTest},
             {"name": "Xbee Test", "requires_input": False, "class": XbeeTest},
             {"name": "Battery Test", "requires_input": False, "class": BatteryTest},
             {"name": "Relay Test", "requires_input": True, "class": RelayTest},
             {"name": "SIM Test", "requires_input": False, "class": SIMTest},
+            {"name": "USB Test", "requires_input": False, "class": USBTest},
             # {"name": "Button Test", "requires_input": False, "class": ButtonTest},
         ]
         

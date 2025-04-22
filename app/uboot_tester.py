@@ -285,3 +285,45 @@ class UBootTester:
                 output.append(data)
             time.sleep(0.1)
         return ''.join(output)
+
+# USB Tester
+    def run_usb_test_case(self, setup_cmds, expect):
+        self.connect()
+        # 1) Issue the boot command
+        self._log(f">>> Sending lsusb command\n")
+        self.ser.write((setup_cmds + '\r\n').encode())
+        time.sleep(0.5)     # Guard time
+        output = self._read_serial(timeout=1)        
+        self._log(f"Output received:\n{output}")   #Uncomment for debugging
+
+        # 2) Check MPCIe slot 1
+        if expect[1] not in output:
+            self._log(">>> ERROR: no SimCOM device found\n")
+            return False
+        self._log("[.] Found SIMCom USB\n")
+        
+        # 3) Check MPCIe slot 2
+        if expect[1] not in output:
+            self._log(">>> ERROR: no Rpi Pico device found\n")
+            return False
+        self._log("[.] Found Rpi Pico USB\n")
+
+        # 4) nRF device
+        if expect[2] not in output:
+            self._log(">>> ERROR: no NRF device found\n")
+            return False
+        self._log("[.] Found nRF USB\n")
+                
+        self._log(">>> Test Passed\n")
+        return True
+
+    def _read_serial(self, timeout=10):
+        """Read all available serial data for a specified duration."""
+        output = []
+        end_time = time.time() + timeout
+        while time.time() < end_time:
+            if self.ser.in_waiting > 0:
+                data = self.ser.read(self.ser.in_waiting).decode(errors='ignore')
+                output.append(data)
+            time.sleep(0.1)
+        return ''.join(output)

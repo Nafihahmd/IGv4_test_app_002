@@ -34,33 +34,6 @@ class Eth0Test(UBootTester):
             self.disconnect()
         return success
     
-    
-# USB Tester
-class USBTest(UBootTester):
-    def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
-        super().__init__(port=port, debug=debug, log_callback=log_callback)
-        print("Initializing USB Test")
-        # Define the setup and test commands for a USB test
-        self.setup_cmds = [
-            'usb start',
-        ]
-        self.test_cmd = 'usb tree'
-        self.expect = 'u-boot EHCI Host Controller'
-
-    def run(self):
-        try:
-            self.connect()
-            success = self.run_test_case(self.setup_cmds, self.test_cmd, self.expect)
-            time.sleep(0.5)
-            # Stop the USB test
-            self.send_command_quick('usb stop')
-        except Exception as e:
-            print("Error during USB test:", e)
-            success = False
-        finally:
-            self.disconnect()
-        return success
-    
 # RTC Tester
 class RTCTest(UBootTester):
     def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
@@ -172,3 +145,28 @@ class SIMTest(UBootTester):
         finally:
             self.disconnect()
         return success
+    
+       
+# USB Tester
+class USBTest(UBootTester):
+    def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
+        super().__init__(port=port, debug=debug, log_callback=log_callback)
+        print("Initializing USB Test")
+        # Define the setup and test commands for a USB test
+        self.setup_cmds = 'lsusb'
+        self.expect = [
+            'Raspberry Pi',
+            'SimTech',
+            'ZEPHYR ECS USB',
+        ]
+
+    def run(self):
+        try:
+            success = self.run_usb_test_case(self.setup_cmds, self.expect)
+        except Exception as e:
+            print("Error during USB test:", e)
+            success = False
+        finally:
+            self.disconnect()
+        return success
+    
