@@ -299,39 +299,35 @@ class UBootTester:
         # 1) Issue the boot command
         self._log(f">>> Sending lsusb command\n")
         self.ser.write((setup_cmds + '\r\n').encode())
-        self.ser.flush()
-        time.sleep(0.5)     # Guard time
-        output = self._read_serial(timeout=1)        
-        self._log(f"Output received:\n{output}")   #Uncomment for debugging
+        time.sleep(0.5)  # Guard time
+        self._wait_for_expected('Host Controller', timeout=5)
+        output = self.ser.read(self.ser.in_waiting).decode(errors='ignore')      
+        self._log(f"Output received:\n{output}\n\n")   #Uncomment for debugging
 
-        # 2) Check MPCIe slot 1
-        if expect[0] not in output:
-            self._log(">>> ERROR: no SimCOM device found\n")
-            return False
-        self._log("[.] Found SIMCom USB\n")
-        
-        # 3) Check MPCIe slot 2
-        if expect[1] not in output:
-            self._log(">>> ERROR: no Rpi Pico device found\n")
-            return False
-        self._log("[.] Found Rpi Pico USB\n")
-
-        # 4) nRF device
-        if expect[2] not in output:
-            self._log(">>> ERROR: no NRF device found\n")
-            return False
-        self._log("[.] Found nRF USB\n")
+        flag = True
+        for i in range(3):
+            # 1) Check if the command was successful
+            if expect[i] not in output:
+                flag = False
+                self._log(f"[✘]{expect[i]}\n")
+            else:
+                self._log(f"[✔]{expect[i]}\n")
                 
-        self._log(">>> Test Passed\n")
-        return True
-
-    def _read_serial(self, timeout=10):
-        """Read all available serial data for a specified duration."""
-        output = []
+        if flag:
+            self._log(">>> Test Passed\n")
+            return True
+        else:
+            self._log(">>> Test Failed\n")
+            return False
+        
+    def _wait_for_expected(self, expect_pattern, timeout=4):
+        """Wait for expected pattern in serial output."""
         end_time = time.time() + timeout
         while time.time() < end_time:
-            if self.ser.in_waiting > 0:
-                data = self.ser.read(self.ser.in_waiting).decode(errors='ignore')
-                output.append(data)
-            time.sleep(0.1)
-        return ''.join(output)
+            line = self.ser.readline().decode('utf-8', errors='ignore')
+            if line:
+                if self.debug:
+                    print(line.strip())
+                if expect_pattern in line:
+                    return True
+        return False
