@@ -23,6 +23,12 @@ class UBootTester:
         self.ser.reset_input_buffer()
         self.ser.reset_output_buffer()
         time.sleep(0.5)
+            
+    def connect_openWRT(self):
+        self.ser = serial.Serial(self.port, 115200, timeout=self.timeout)
+        self.ser.reset_input_buffer()
+        self.ser.reset_output_buffer()
+        time.sleep(0.5)
 
     def disconnect(self):
         if self.ser and self.ser.is_open:
@@ -213,11 +219,13 @@ class UBootTester:
         
 # SIM tester
     def run_sim_test_case(self, setup_cmds, test_cmd, expect, shell_prompt, wait_time=10):
-        self.connect()
         # 1) Issue the boot command
         self._log(f">>> Sending boot command\n")
         self.ser.write((test_cmd + '\r\n').encode())
+        time.sleep(0.5)  # Guard time
 
+        self.disconnect()  # Disconnect from U-Boot
+        self.connect_openWRT()
         # 2) Wait for OpenWRT to finish loading modules
         self._log(">>> Waiting for OpenWRT modules to finish loading...\n")
         if not self._wait_for_expected(expect, timeout=300):
@@ -288,10 +296,10 @@ class UBootTester:
 
 # USB Tester
     def run_usb_test_case(self, setup_cmds, expect):
-        self.connect()
         # 1) Issue the boot command
         self._log(f">>> Sending lsusb command\n")
         self.ser.write((setup_cmds + '\r\n').encode())
+        self.ser.flush()
         time.sleep(0.5)     # Guard time
         output = self._read_serial(timeout=1)        
         self._log(f"Output received:\n{output}")   #Uncomment for debugging

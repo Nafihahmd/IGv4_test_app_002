@@ -11,7 +11,7 @@ class Eth0Test(UBootTester):
         formatted_mac = ":".join(self.mac_addr[i:i+2] for i in range(0, 12, 2))
         self.setup_cmds = [
             f'setenv ethaddr {formatted_mac}',
-            f'setenv bootargs "console=ttyS1,9600 ethaddr0={formatted_mac}"',
+            f'setenv bootargs "console=ttyS1,115200 ethaddr0={formatted_mac}"',
             'setenv ipaddr 192.168.0.218',
             f'setenv serverip {self.server_ip}',
             'setenv netmask 255.255.255.0',
@@ -137,7 +137,8 @@ class SIMTest(UBootTester):
 
     def run(self):
         try:
-            self.connect()
+            # self.connect_openWRT()    #Connect from inside the test script as we need to switch baudrate
+            self.connect()  #baudrate 9600 for U-boot
             success = self.run_sim_test_case(self.setup_cmds,  self.test_cmd, self.expect, self.shell_prompt, 10)
         except Exception as e:
             print("Error during Battery test:", e)
@@ -162,6 +163,7 @@ class USBTest(UBootTester):
 
     def run(self):
         try:
+            self.connect_openWRT()
             success = self.run_usb_test_case(self.setup_cmds, self.expect)
         except Exception as e:
             print("Error during USB test:", e)
