@@ -97,7 +97,23 @@ class HardwareTestApp:
         # Label adjacent to the reconnect indicator
         self.status_text = tk.Label(top_frame, text="Disconnected")
         self.status_text.pack(side=tk.RIGHT, padx=5)
-        
+
+        # Define the control variables
+        self.auto_advance_var = tk.BooleanVar(value=False)
+        self.print_labels_var = tk.BooleanVar(value=True)
+        # Create the Checkbuttons
+        auto_cb = tk.Checkbutton(top_frame,
+                                text="Auto-advance",
+                                variable=self.auto_advance_var,
+                                onvalue=True, offvalue=False)
+        auto_cb.pack(side=tk.LEFT, padx=5)
+
+        suppress_cb = tk.Checkbutton(top_frame,
+                                    text="Print Labels",
+                                    variable=self.print_labels_var,
+                                    onvalue=True, offvalue=False)
+        suppress_cb.pack(side=tk.LEFT, padx=5)
+
         # Content area split into left and right frames
         content_frame = tk.Frame(main_frame)
         content_frame.pack(fill=tk.BOTH, expand=True)
@@ -218,6 +234,14 @@ class HardwareTestApp:
         if all(res in ["PASS", "FAIL"]
                for t, res in zip(self.tests, self.test_results.values())):
             self.prompt_save_results()
+            
+        # If auto-advance is enabled, automatically run the next test.
+        if self.auto_advance_var.get() and passed:
+            names = [t["name"] for t in self.tests]
+            idx = names.index(test_name)
+            if idx + 1 < len(names):
+                next_test = names[idx + 1]
+                self.root.after(200, lambda nt=next_test: self.run_test(nt))
     
     def user_pass(self):
         """User marks a manual test as passed."""
