@@ -108,11 +108,11 @@ class HardwareTestApp:
                                 onvalue=True, offvalue=False)
         auto_cb.pack(side=tk.LEFT, padx=5)
 
-        suppress_cb = tk.Checkbutton(top_frame,
+        print_cb = tk.Checkbutton(top_frame,
                                     text="Print Labels",
                                     variable=self.print_labels_var,
                                     onvalue=True, offvalue=False)
-        suppress_cb.pack(side=tk.LEFT, padx=5)
+        print_cb.pack(side=tk.LEFT, padx=5)
 
         # Content area split into left and right frames
         content_frame = tk.Frame(main_frame)
@@ -305,7 +305,8 @@ class HardwareTestApp:
         append_test_results(self.test_results, self.mac_addr)
         # Get a new mac address for the next device
         self.mac_addr = get_next_available_mac(True)
-        self.print_label()
+        if self.print_labels_var.get(): # Print labels if the checkbox is checked
+            self.print_label()
         self.reset_tests()
     
     def reset_tests(self):
