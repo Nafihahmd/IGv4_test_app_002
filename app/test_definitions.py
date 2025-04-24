@@ -161,7 +161,7 @@ class USBTest(UBootTester):
         self.expect = [
             'SimTech',
             'Raspberry Pi',
-            'ZEPHYR ECS USB',
+            'ZEPHYR ECS_USB',
         ]
 
     def run(self):
