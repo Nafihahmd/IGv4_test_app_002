@@ -99,7 +99,7 @@ class HardwareTestApp:
         self.status_text.pack(side=tk.RIGHT, padx=5)
 
         # Define the control variables
-        self.auto_advance_var = tk.BooleanVar(value=False)
+        self.auto_advance_var = tk.BooleanVar(value=True)
         self.print_labels_var = tk.BooleanVar(value=True)
         # Create the Checkbuttons
         auto_cb = tk.Checkbutton(top_frame,
