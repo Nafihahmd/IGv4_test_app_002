@@ -85,8 +85,10 @@ class BatteryTest(UBootTester):
         print("Initializing Battery Test")
         # Define the setup and test commands for a Battery test
         self.setup_cmds = [
-            'mw 0xb00041b0 0x40000',    # Enable pullup on PG.9
-            'md 0xb00041b0 1',      # Read back to check if it is set
+            # 'mw 0xb000007c 0x00000000',   # Set MFP to GPIO on PB.13 (SYS_BA+0x07C)  SYS_BA=0xB000_0000 
+            # 'md 0xb000007c 1',            # Read back to check if it is set
+            'mw 0xb0004030 0x4000000',    # Enable pullup on PB.13 (GPIO_BA + 0x070)     GPIO_BA=0xB000_4000 
+            'md 0xb0004030 1',            # Read back to check if it is set
         ]
 
     def run(self):
@@ -106,7 +108,8 @@ class RelayTest(UBootTester):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
         print("Initializing Relay Test")
         # Define the setup and test commands for a Relay test
-        self.setup_cmds = 'gpio toggle 166' # GPIO PF.6
+        # Global GPIO Number = (Port Index × 32) + Pin Number
+        self.setup_cmds = 'gpio toggle 45' # GPIO PB.13 (1x32 + 13)
 
     def run(self):
         try:
