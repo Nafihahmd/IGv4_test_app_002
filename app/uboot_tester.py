@@ -296,13 +296,19 @@ class UBootTester:
 
 # USB Tester
     def run_usb_test_case(self, setup_cmds, expect):
+        self.ser.reset_input_buffer()   # flush prior bytes
         # 1) Issue the boot command
         self._log(f">>> Sending lsusb command\n")
         self.ser.write((setup_cmds + '\r\n').encode())
-        time.sleep(0.5)  # Guard time
-        self._wait_for_expected('Host Controller', timeout=5)
-        output = self.ser.read(self.ser.in_waiting).decode(errors='ignore')      
-        self._log(f"Output received:\n{output}\n\n")   #Uncomment for debugging
+        found, prompt = self._wait_for_expected("Bus", timeout=5)
+        if not found:
+            self._log(">>> ERROR: lsusb prompt not seen\n")
+            return False
+        
+        time.sleep(0.2)  # small guard time
+        # 2) Read the output
+        output =  "".join(prompt) + self.ser.read(self.ser.in_waiting).decode(errors='ignore')      
+        #self._log(f"Output received:\n{output}\n\n")   #Uncomment for debugging
 
         flag = True
         for i in range(3):
@@ -320,14 +326,16 @@ class UBootTester:
             self._log(">>> Test Failed\n")
             return False
         
-    def _wait_for_expected(self, expect_pattern, timeout=4):
-        """Wait for expected pattern in serial output."""
+    def _wait_for_expected(self, expect_pattern, timeout=30):
+        """Return (found, all_lines)."""
         end_time = time.time() + timeout
+        lines = []
         while time.time() < end_time:
-            line = self.ser.readline().decode('utf-8', errors='ignore')
-            if line:
+            raw = self.ser.readline().decode('utf-8', errors='ignore')
+            if raw:
                 if self.debug:
-                    print(line.strip())
-                if expect_pattern in line:
-                    return True
-        return False
+                    print(raw.strip())
+                lines.append(raw)
+                if expect_pattern in raw:
+                    return True, lines
+        return False, lines
