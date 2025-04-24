@@ -196,7 +196,7 @@ class UBootTester:
         self.ser.write(('\n').encode())
         for i in range(wait_time, 0, -1):
             self._log(f"Waiting for power removal (auto timeout in {i} seconds)\n")            
-            self.ser.write(('gpio input 201\n').encode())
+            self.ser.write(('gpio input 45\n').encode()) # GPIO PB.13 (1x32 + 13)
             output = self.ser.read(self.ser.in_waiting)
             output_decoded = output.decode(errors='ignore')
             if "value is 0" in output_decoded:
