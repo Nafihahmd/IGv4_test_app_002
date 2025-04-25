@@ -159,9 +159,9 @@ class USBTest(UBootTester):
         # Define the setup and test commands for a USB test
         self.setup_cmds = 'lsusb'
         self.expect = [
-            'SimTech',
-            'Raspberry Pi',
-            'ZEPHYR ECS_USB',
+            r"SimTech",
+            r"Raspberry Pi",
+            r"ZEPHYR ECS[_ ]USB",   # [_ ] means “underscore or space”
         ]
 
     def run(self):

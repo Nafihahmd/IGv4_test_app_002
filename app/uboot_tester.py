@@ -311,13 +311,14 @@ class UBootTester:
         #self._log(f"Output received:\n{output}\n\n")   #Uncomment for debugging
 
         flag = True
-        for i in range(3):
-            # 1) Check if the command was successful
-            if expect[i] not in output:
-                flag = False
-                self._log(f"[✘]{expect[i]}\n")
+        for s in expect:
+            m = re.search(s, output)
+            if m: 
+                found = m.group(0)               # <-- the actual substring matched in output
+                self._log(f"[✔]{found}\n")
             else:
-                self._log(f"[✔]{expect[i]}\n")
+                flag = False
+                self._log(f"[✘]{s}\n")
                 
         if flag:
             self._log(">>> Test Passed\n")
