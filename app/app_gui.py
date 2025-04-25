@@ -311,6 +311,7 @@ class HardwareTestApp:
     
     def reset_tests(self):
         """Reset all tests for the next device."""
+        self.clear_log()
         for test in self.tests:
             self.test_results[test["name"]] = "Pending"
             btn = self.test_buttons.get(test["name"])
