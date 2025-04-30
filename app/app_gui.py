@@ -5,6 +5,11 @@ from excel_writer import append_test_results, get_next_available_mac
 from label_create import create_label
 import os
 import subprocess
+import configparser
+from appdirs import user_config_dir
+# Load configuration file
+cfg = configparser.ConfigParser()
+path = os.path.join(user_config_dir("IGTestApp","ECSI"), "settings.ini")
 
 class HardwareTestApp:
     def __init__(self, root):
@@ -21,6 +26,10 @@ class HardwareTestApp:
             print("Warning: No available MAC address found!")
 
         self.server_ip = "192.168.0.1"
+        self.auto_advance = True
+        self.print_labels = True
+        # Load configuration settings
+        self.load_config()
 
         
         # Store test results: "Pending", "PASS", or "FAIL"
@@ -99,8 +108,12 @@ class HardwareTestApp:
         self.status_text.pack(side=tk.RIGHT, padx=5)
 
         # Define the control variables
-        self.auto_advance_var = tk.BooleanVar(value=True)
-        self.print_labels_var = tk.BooleanVar(value=True)
+        self.auto_advance_var = tk.BooleanVar(value=self.auto_advance)
+        self.print_labels_var = tk.BooleanVar(value=self.print_labels)
+        
+        # whenever the var is written (toggled), call our handler
+        self.auto_advance_var.trace_add('write', self._on_toggle_auto) 
+        self.print_labels_var.trace_add('write', self._on_toggle_print)
         # Create the Checkbuttons
         auto_cb = tk.Checkbutton(top_frame,
                                 text="Auto-advance",
@@ -113,6 +126,9 @@ class HardwareTestApp:
                                     variable=self.print_labels_var,
                                     onvalue=True, offvalue=False)
         print_cb.pack(side=tk.LEFT, padx=5)
+
+        # Save the current state of the checkboxes to the config file
+        self.save_config()
 
         # Content area split into left and right frames
         content_frame = tk.Frame(main_frame)
@@ -357,6 +373,8 @@ class HardwareTestApp:
             self.server_ip = sip_entry.get()
             self.serial_port = serial_entry.get()
             self.model_number = model_entry.get()
+            # Update the config file with new values
+            self.save_config()  # Save current settings to disk
             # Optionally, you can show a message box or log the changes
             # For example:
             # messagebox.showinfo("Parameters Set",
@@ -384,7 +402,48 @@ class HardwareTestApp:
 
         # Make the window modal
         window.grab_set()
+    def _on_toggle_auto(self, *args):
+        self.auto_advance = self.auto_advance_var.get()              # 
+        self.save_config()                                           # write to disk 
+
+    def _on_toggle_print(self, *args):
+        self.print_labels = self.print_labels_var.get()
+        self.save_config()
+        
+    def save_config(self):
+        # Save the current settings to the config file
+        cfg["network"]["mac"] = self.mac_addr
+        cfg["network"]["sip"] = self.server_ip
+        cfg["device"]["serial_port"] = self.serial_port
+        cfg["device"]["model_number"] = self.model_number
+        cfg["ui"]["auto_advance"] = str(self.auto_advance_var.get())
+        cfg["ui"]["print_label"] = str(self.print_labels_var.get())
+        
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            cfg.write(f)
+
     
+    def load_config(self):
+        # read settings.ini
+        # Load or create defaults
+        if os.path.exists(path):
+            cfg.read(path)
+        else:
+            cfg["network"] = {"mac": "00019D005002", "sip": "192.168.0.1"}
+            cfg["device"] = {"serial_port": "/dev/ttyUSB0", "model_number": "IG4-1000"}
+            cfg["ui"] = {"auto_advance": "True", "print_label": "True"}
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w") as f:
+                cfg.write(f)
+
+        self.mac_addr = cfg["network"]["mac"]
+        self.server_ip = cfg["network"]["sip"]
+        self.serial_port = cfg["device"]["serial_port"]
+        self.model_number = cfg["device"]["model_number"]
+        self.auto_advance = cfg.getboolean("ui", "auto_advance")
+        self.print_labels = cfg.getboolean("ui", "print_label")
+
     def show_help(self):
         """Display help information."""
         messagebox.showinfo("Help", "This application conducts hardware tests via serial port.\n\n"
