@@ -44,7 +44,7 @@ def append_test_results(test_results, mac_addr):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # Define the order in which tests should appear; adjust as needed.
-    test_order = ["Ethernet Test", "USB Test", "RTC Test", "Xbee Test", "Battery Test", "Relay Test", "SIM Test", "USB Test", "BLE Test"]
+    test_order = ["Ethernet Test", "RTC Test", "Xbee Test", "Battery Test", "Relay Test", "SIM Test", "USB Test", "BLE Test"]
     
     # Construct the row: first element is timestamp then one cell for each test.
     row_data = [timestamp] + [mac_addr] +[test_results.get(test, "N/A") for test in test_order]
