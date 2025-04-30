@@ -106,7 +106,7 @@ def get_next_available_mac(mark_as_used=False):
             mac_cell = row[mac_col_idx]
             status_cell = row[status_col_idx]
 
-            # Double-check that the status is either empty or not marked as 'gone!'.
+            # Double-check that the status is either empty or not marked as 'used'.
             current_status = (status_cell.value or "").strip().lower()
             if current_status != "used":
                 # Before returning, update the status.

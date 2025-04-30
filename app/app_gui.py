@@ -318,12 +318,13 @@ class HardwareTestApp:
         #         for test, result in self.test_results.items():
         #             f.write(f"{test}: {result}\n")
         #     messagebox.showinfo("Save Results", "Test results saved successfully.")
+        self.mac_addr = get_next_available_mac(False) # Mark the current MAC address as read
         append_test_results(self.test_results, self.mac_addr)
-        # Get a new mac address for the next device
-        self.mac_addr = get_next_available_mac(True)
         if self.print_labels_var.get(): # Print labels if the checkbox is checked
             self.print_label()
         self.reset_tests()
+        # Get a new mac address for the next device
+        self.mac_addr = get_next_available_mac(True)
     
     def reset_tests(self):
         """Reset all tests for the next device."""
@@ -345,8 +346,9 @@ class HardwareTestApp:
         # --- MAC Address field (first parameter) ---
         self.mac_addr = get_next_available_mac(False)  # Read the MAC address from the Excel file
         tk.Label(window, text="MAC Address:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
-        mac_entry = tk.Entry(window, width=30)
+        mac_entry = tk.Entry(window, width=30, state="normal")
         mac_entry.insert(0, self.mac_addr)  # Pre-fill with the current MAC address
+        mac_entry.config(state="disabled")                # now greyed out, contents fixed
         mac_entry.grid(row=0, column=1, padx=5, pady=5)
         
         # --- Server IP Address field ---
@@ -369,7 +371,7 @@ class HardwareTestApp:
         
         # --- OK Button to save changes ---
         def on_ok():
-            self.mac_addr = mac_entry.get()
+            # self.mac_addr = mac_entry.get()   # MAC address is fixed and not editable
             self.server_ip = sip_entry.get()
             self.serial_port = serial_entry.get()
             self.model_number = model_entry.get()
@@ -412,7 +414,6 @@ class HardwareTestApp:
         
     def save_config(self):
         # Save the current settings to the config file
-        cfg["network"]["mac"] = self.mac_addr
         cfg["network"]["sip"] = self.server_ip
         cfg["device"]["serial_port"] = self.serial_port
         cfg["device"]["model_number"] = self.model_number
@@ -430,14 +431,13 @@ class HardwareTestApp:
         if os.path.exists(path):
             cfg.read(path)
         else:
-            cfg["network"] = {"mac": "00019D005002", "sip": "192.168.0.1"}
+            cfg["network"] = {"sip": "192.168.0.1"}
             cfg["device"] = {"serial_port": "/dev/ttyUSB0", "model_number": "IG4-1000"}
             cfg["ui"] = {"auto_advance": "True", "print_label": "True"}
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "w") as f:
                 cfg.write(f)
 
-        self.mac_addr = cfg["network"]["mac"]
         self.server_ip = cfg["network"]["sip"]
         self.serial_port = cfg["device"]["serial_port"]
         self.model_number = cfg["device"]["model_number"]
