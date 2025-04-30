@@ -20,7 +20,7 @@ def initialize_workbook():
         ws = wb.active
         ws.title = "TestResults"
         # Write headers: first column is a timestamp, then one per test.
-        headers = ["Timestamp", "MAC Addr", "Ethernet", "USB", "RTC", "Xbee", "Battery", "Relay", "SIM", "USB", "BLE"]
+        headers = ["Timestamp", "MAC Addr", "Ethernet", "RTC", "Xbee", "Battery", "Relay", "SIM", "USB", "BLE"]
         ws.append(headers)
         wb.save(TEST_REPORT)
         print("Created new workbook with headers.")
