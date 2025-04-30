@@ -285,9 +285,9 @@ class HardwareTestApp:
             messagebox.showinfo("Test Results", data)
 
     def print_label(self):
-        self.status_label.config(text=f"Creating label with {self.mac_addr}\n")
+        self.status_label.config(text=f"Creating label for {self.model_number} with {self.mac_addr}\n")
         # self._log(f"Creating label with {self.mac_addr}\n")
-        img = create_label(self.mac_addr, 'IG4-1000')
+        img = create_label(self.mac_addr, self.model_number)
         # Define the target directory and file path for label
         output_dir = os.path.join(os.getcwd(), "img")
         output_path = os.path.join(output_dir, "label.png")
