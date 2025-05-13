@@ -62,6 +62,7 @@ class XbeeTest(UBootTester):
         self.setup_cmds = [
             'setenv stdin nuc980_serial1,nuc980_serial2',
             'setenv stdout nuc980_serial1,nuc980_serial2',
+            'mw 0xb0072024 0x300004e0',  # Set UART2 to 9600 baud rate
             'setenv stdin nuc980_serial1',
             'setenv stdout nuc980_serial1',
         ]
@@ -140,8 +141,7 @@ class SIMTest(UBootTester):
 
     def run(self):
         try:
-            # self.connect_openWRT()    #Connect from inside the test script as we need to switch baudrate
-            self.connect()  #baudrate 9600 for U-boot
+            self.connect()
             success = self.run_sim_test_case(self.setup_cmds,  self.test_cmd, self.expect, self.shell_prompt, 10)
         except Exception as e:
             print("Error during Battery test:", e)
@@ -166,7 +166,7 @@ class USBTest(UBootTester):
 
     def run(self):
         try:
-            self.connect_openWRT()
+            self.connect()
             success = self.run_usb_test_case(self.setup_cmds, self.expect)
         except Exception as e:
             print("Error during USB test:", e)

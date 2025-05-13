@@ -462,7 +462,7 @@ class HardwareTestApp:
             if self.serial_conn:
                 self.serial_conn.close()
             import serial  # Import here since pyserial is needed for connecting
-            self.serial_conn = serial.Serial(self.serial_port, baudrate=9600, timeout=0.1)
+            self.serial_conn = serial.Serial(self.serial_port, baudrate=115200, timeout=0.1)
             self.status_text.config(text="Waiting for U-Boot prompt...")
             # Initially, do not mark as connected (use red indicator)
             self.update_reconnect_indicator(False)

@@ -3,7 +3,7 @@ import time
 import re
 
 class UBootTester:
-    def __init__(self, port='/dev/ttyUSB0', baudrate=9600, timeout=0.1, debug=False, log_callback=None):
+    def __init__(self, port='/dev/ttyUSB0', baudrate=115200, timeout=0.1, debug=False, log_callback=None):
         self.port = port
         self.baudrate = baudrate
         self.timeout = timeout
@@ -20,12 +20,6 @@ class UBootTester:
             
     def connect(self):
         self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
-        self.ser.reset_input_buffer()
-        self.ser.reset_output_buffer()
-        time.sleep(0.5)
-            
-    def connect_openWRT(self):
-        self.ser = serial.Serial(self.port, 115200, timeout=self.timeout)
         self.ser.reset_input_buffer()
         self.ser.reset_output_buffer()
         time.sleep(0.5)
@@ -148,7 +142,7 @@ class UBootTester:
 #Xbee Tester    
     def run_xbee_test_case(self, setup_cmds, wait_time=2):
         self._log("Sending setup command \n")
-        for cmd in setup_cmds[:2]:
+        for cmd in setup_cmds[:3]:
             print(f"  -> {cmd}")
             self.send_command_quick(cmd)
 
@@ -173,7 +167,7 @@ class UBootTester:
         # self._log(output_decoded)
         time.sleep(0.5)
         #self._log("Undoing Configurations \n")
-        for cmd in setup_cmds[2:]:
+        for cmd in setup_cmds[3:]:
             print(f"  -> {cmd}")
             self.send_command_quick(cmd)
         time.sleep(0.5)
@@ -223,10 +217,8 @@ class UBootTester:
         self._log(f">>> Sending boot command\n")
         self.ser.write((test_cmd + '\r\n').encode())
         time.sleep(0.5)  # Guard time
-
-        self.disconnect()  # Disconnect from U-Boot
-        self.connect_openWRT()
-        # 2) Wait for OpenWRT to finish loading modules
+        
+        # Wait for OpenWRT to finish loading modules
         self._log(">>> Waiting for OpenWRT modules to finish loading...\n")
         if not self._wait_for_expected(expect, timeout=300):
             self._log(">>> ERROR: Timed out waiting for kmodloader\n")
