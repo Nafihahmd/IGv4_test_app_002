@@ -486,8 +486,9 @@ class HardwareTestApp:
         if self.serial_conn and self.serial_conn.in_waiting:
             try:
                 line = self.serial_conn.readline().decode("utf-8", errors="ignore")
-                if "Hit any key to stop autoboot:" in line:
-                    self.serial_conn.write(b'\n')
+                if "Autoboot in 1 seconds" in line:
+                    print("U-Boot prompt detected, sending interrupt command.")
+                    self.serial_conn.write(('ecsi25').encode())  # Send magic key to interrupt autoboot
                     self.status_text.config(text="U-Boot detected; device connected")
                     self.update_reconnect_indicator(True)
             except Exception as e:
