@@ -4,3 +4,7 @@ img/*
 *.txt
 test_results.xlsx
 mac_addr.xlsx
+mac_addr - Calculations.xlsx
+*.spec
+ dist/ 
+ build/
