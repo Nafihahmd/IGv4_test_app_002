@@ -6,5 +6,7 @@ test_results.xlsx
 mac_addr.xlsx
 mac_addr - Calculations.xlsx
 *.spec
- dist/ 
- build/
+dist/ 
+build/
+Res/ptouch-print/build/*
+!Res/ptouch-print/build/ptouch-print

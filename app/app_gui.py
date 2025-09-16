@@ -289,7 +289,7 @@ class HardwareTestApp:
         # self._log(f"Creating label with {self.mac_addr}\n")
         img = create_label(self.mac_addr, self.model_number)
         # Define the target directory and file path for label
-        output_dir = os.path.join(os.getcwd(), "img")
+        output_dir = os.path.join(os.getcwd(), "Res/img")
         output_path = os.path.join(output_dir, "label.png")
 
         os.makedirs(output_dir, exist_ok=True)
@@ -298,9 +298,9 @@ class HardwareTestApp:
 
         # result = subprocess.run(["sudo chmod -R 777 /dev/bus/usb/"], capture_output=True, text=True)
         subprocess.run([
-            "ptouch-print/build/ptouch-print",
+            "Res/ptouch-print/build/ptouch-print",
             "--image",
-            "img/label.png"
+            "Res/img/label.png"
         ])
     
     def save_results(self):

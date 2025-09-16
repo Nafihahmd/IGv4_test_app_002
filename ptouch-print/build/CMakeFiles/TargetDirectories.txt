@@ -1,8 +1,0 @@
-/home/design/IG/label_printer/ptouch-print/build/CMakeFiles/ptouch-print.dir
-/home/design/IG/label_printer/ptouch-print/build/CMakeFiles/git-version.dir
-/home/design/IG/label_printer/ptouch-print/build/CMakeFiles/edit_cache.dir
-/home/design/IG/label_printer/ptouch-print/build/CMakeFiles/rebuild_cache.dir
-/home/design/IG/label_printer/ptouch-print/build/CMakeFiles/list_install_components.dir
-/home/design/IG/label_printer/ptouch-print/build/CMakeFiles/install.dir
-/home/design/IG/label_printer/ptouch-print/build/CMakeFiles/install/local.dir
-/home/design/IG/label_printer/ptouch-print/build/CMakeFiles/install/strip.dir
