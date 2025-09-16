@@ -110,7 +110,7 @@ class RelayTest(UBootTester):
         print("Initializing Relay Test")
         # Define the setup and test commands for a Relay test
         # Global GPIO Number = (Port Index × 32) + Pin Number
-        self.setup_cmds = 'gpio toggle 166' # GPIO PF.6 (5x32 + 13)
+        self.setup_cmds = 'gpio toggle 12' # GPIO PA.12 (0x32 + 12)
 
     def run(self):
         try:
