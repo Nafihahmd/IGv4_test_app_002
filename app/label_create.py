@@ -37,13 +37,13 @@ def create_label(unit_id, model_number='', width=355, height=120):
     
     # Load font (try Arial first, fallback to default)
     try:
-        font = ImageFont.truetype("ARIALNB.TTF", size=16)
+        font = ImageFont.truetype("Res/ARIALNB.TTF", size=16)
     except IOError:
         font = ImageFont.load_default()
     
     # Load font (try Arial first, fallback to default)
     try:
-        fontLarge = ImageFont.truetype("ARLRDBD.TTF", size=20)
+        fontLarge = ImageFont.truetype("Res/ARLRDBD.TTF", size=20)
     except IOError:
         fontLarge = ImageFont.load_default()
     

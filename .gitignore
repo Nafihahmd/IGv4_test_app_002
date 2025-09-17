@@ -1,6 +1,6 @@
 *.Identifier
 *.pyc
-img/*
+Res/img/
 *.txt
 test_results.xlsx
 mac_addr.xlsx
