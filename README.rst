@@ -22,6 +22,25 @@ Clone the repository and enter the project folder::
     git clone https://github.com/myaccount/myproject.git
     cd myproject
 
+
+
+Using the provided Bin binary (RPi only)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A prebuilt Bin file is available for RPi and tested on Raspberry Pi 4 Model B. Steps:
+
+1. Go to the Bin folder.
+2. Extract the contents of the provided .zip file.
+3. Make the binary executable if required::
+       chmod +x IGv4_test_app_<version>  # replace <version> with the actual version
+4. Add MAC_addr.xlsx to root of Bin folder (next to the binary) to use a custom MAC address list.
+5. Give the binary permission to access USB devices (required for ptouch-print to print labels)::
+
+       sudo chmod -R 777 /dev/bus/usb/
+6. Run the binary::
+       ./IGv4_test_app_<version>         # or run the produced executable file name
+
+
 Running from source
 -------------------
 
@@ -141,40 +160,6 @@ Linux / RPi::
 Windows:
 
 Open PowerShell or CMD and run the .exe inside ``dist\IGv4_test_app_<version>``.
-
-Using the provided Bin binary (RPi only)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You mentioned a prebuilt Bin file is available for RPi and tested on Raspberry Pi 4 Model B. Typical steps:
-
-1. Copy the Bin folder to the Pi (via scp, USB, or similar)
-2. On the Pi, in the folder containing the binary::
-
-    cd Bin
-    chmod +x IGv4_test_app_<version>  # if not executable
-    ./IGv4_test_app_<version>
-
-If the binary is a folder with resources, run the launcher inside that folder (for example ``./run.sh`` or the executable produced by PyInstaller). If the binary expects to be launched from a certain working directory to find Res/, run it from that folder.
-
-Important RPi notes
-~~~~~~~~~~~~~~~~~~~
-
-- The Bin executable was only tested on Raspberry Pi 4 Model B. Other Pi models or ARM boards may not be compatible
-- Ensure the Pi has a desktop session or an X server available when launching the GUI
-- If you see errors about missing libraries, install missing system packages. If the executable still reports missing Tk libraries, try installing system Tk: for Debian/Ubuntu/Raspbian::
-
-    sudo apt update
-    sudo apt install python3-tk
-
-Troubleshooting tips
---------------------
-
-- If ``pip install -r app/requirements.txt`` fails, inspect the error messages and install any missing OS-level packages. On Debian/Ubuntu/Raspbian use ``sudo apt-get update`` and install dev packages needed by wheels
-- If activation fails on Windows PowerShell, ensure script execution for the session is allowed (see the ``Set-ExecutionPolicy`` command above)
-- If the GUI does not open on Linux/RPi, check you are running inside a graphical session and the ``DISPLAY`` environment variable is set
-- If PyInstaller misses resource files, verify paths passed to ``--add-data`` and ensure the Res folder contains required files
-- If the executable fails with missing shared library errors on Linux, inspect the error and install the appropriate system package
-
 Repository layout (expected)
 ----------------------------
 
@@ -190,24 +175,3 @@ Repository layout (expected)
     └─ README.rst
 
 Adjust commands if your repo structure differs.
-
-Reporting issues
-----------------
-
-If you run into problems building or running the app, please open an issue in the GitHub repo and include:
-
-- platform (Windows / Raspberry Pi 4 Model B / other)
-- Python version (``python --version``)
-- full error output or traceback
-- steps you followed
-
-Optional follow-ups
--------------------
-
-If you want, I can:
-
-1. Add a short license and a contribution section
-2. Prepare build.ps1 and build.sh scripts to automate the PyInstaller steps for Windows and Linux
-3. Prepare a minimal troubleshooting checklist for the assembly team
-
-Tell me which option you prefer and I will add it.
