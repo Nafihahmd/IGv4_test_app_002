@@ -181,6 +181,7 @@ Linux / RPi
 Windows:
 
 Open PowerShell or CMD and run the .exe inside ``dist\IGv4_test_app_<version>``.
+
 Repository layout (expected)
 ----------------------------
 
