@@ -12,15 +12,15 @@ Requirements
 - Python 3 (3.8 or newer recommended)
 - Git
 - On Windows: PowerShell (for the commands below)
-- On Raspberry Pi / Linux: desktop session or X server (Tkinter GUI requires a display)
+- On Raspberry Pi / Linux: desktop session or X server
 
 Quick repository setup
 ----------------------
 
 Clone the repository and enter the project folder::
 
-    git clone https://github.com/myaccount/myproject.git
-    cd myproject
+    git clone https://github.com/Nafihahmd/IGv4_test_app_002.git
+    cd IGv4_test_app_002
 
 
 
@@ -30,11 +30,12 @@ Using the provided Bin binary (RPi only)
 A prebuilt Bin file is available for RPi and tested on Raspberry Pi 4 Model B. Steps:
 
 1. Go to the Bin folder.
-2. Extract the contents of the provided .zip file.
+2. Extract the contents of the provided .7z file.
 3. Make the binary executable if required::
+
        chmod +x IGv4_test_app_<version>  # replace <version> with the actual version
-4. Add MAC_addr.xlsx to root of Bin folder (next to the binary) to use a custom MAC address list.
-5. Give the binary permission to access USB devices (required for ptouch-print to print labels)::
+4. Add mac_addr.xlsx to root folder (next to the binary) to use a custom MAC address list.
+5. Give the permission to access USB devices (required for ptouch-print to print labels)::
 
        sudo chmod -R 777 /dev/bus/usb/
 6. Run the binary::
@@ -44,6 +45,23 @@ A prebuilt Bin file is available for RPi and tested on Raspberry Pi 4 Model B. S
 Running from source
 -------------------
 
+Linux / Raspberry Pi (tested on RPi 4 Model B)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create and activate a venv::
+
+    python3 -m venv venv
+    source venv/bin/activate
+
+Upgrade pip and install dependencies::
+
+    python3 -m pip install --upgrade pip
+    pip install -r app/requirements.txt
+
+Run the app::
+
+    python3 app/app_gui.py
+
 Windows (PowerShell)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -52,10 +70,6 @@ Open PowerShell and go to the project folder (the folder containing app).
 Create a virtual environment::
 
     python -m venv venv
-
-If PowerShell blocks script execution when you try to activate, run this once in the same session::
-
-    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
 
 Activate the virtual environment::
 
@@ -83,24 +97,6 @@ If you prefer the classic Command Prompt::
     pip install -r app\requirements.txt
     python app\app_gui.py
 
-Linux / Raspberry Pi (tested on RPi 4 Model B)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Create and activate a venv::
-
-    python3 -m venv venv
-    source venv/bin/activate
-
-Upgrade pip and install dependencies::
-
-    python3 -m pip install --upgrade pip
-    pip install -r app/requirements.txt
-
-Run the app::
-
-    python3 app/app_gui.py
-
-Make sure you are on the Pi desktop or have X11 forwarding enabled, because the GUI needs a display.
 
 Build a standalone executable with PyInstaller
 ----------------------------------------------
@@ -136,13 +132,6 @@ Windows PowerShell example (one-folder build)::
 
     pyinstaller --clean app/app_gui.py -n "IGv4_test_app_$VERSION" --add-data "Res/*;Res"
 
-Notes:
-
-- If you want a single-file executable, add ``-F`` (one-file mode). Example::
-
-    pyinstaller --clean -F app/app_gui.py -n "IGv4_test_app_$VERSION" --add-data "Res/*:Res"
-
-- One-file builds extract at runtime and can cause a delay at startup. For GUI apps with many resources, a one-folder build is often more predictable.
 - After the build finishes the built app will be under ``dist/IGv4_test_app_<version>/`` and the executable will be inside that folder.
 
 Running the binary
@@ -165,12 +154,12 @@ Repository layout (expected)
 
 ::
 
-    myproject/
+    IGv4_test_app_002/
     ├─ app/
     │  ├─ app_gui.py
     │  ├─ _version.py
     │  └─ requirements.txt
-    ├─ Res/          # resources used by the GUI (icons, data files, etc)
+    ├─ Res/          # resources used by the GUI (fonts, data files, etc)
     ├─ Bin/          # optional: prebuilt RPi binary (provided)
     └─ README.rst
 
