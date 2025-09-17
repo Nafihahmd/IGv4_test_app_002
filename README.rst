@@ -3,8 +3,7 @@ IGv4 Test App
 
 GUI application (Tkinter) used on the assembly line for testing IGv4 hardware.
 
-This document explains how to run the app from source (Windows and Linux), how to build a standalone executable with PyInstaller, and how to run the provided binary (Bin).
- The Bin is available only for RPi and was tested on Raspberry Pi 4 Model B.
+This document explains how to run the app from source (Windows and Linux), how to build a standalone executable with PyInstaller, and how to run the provided binary (Bin). The Bin is available only for RPi and was tested on Raspberry Pi 4 Model B.
 
 Requirements
 ------------
@@ -52,21 +51,24 @@ Running from source
 Linux / Raspberry Pi (tested on RPi 4 Model B)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Create and activate a venv
+1. Create and activate a venv.
 
 .. code-block:: bash
 
     python3 -m venv venv
     source venv/bin/activate
 
-Upgrade pip and install dependencies
+2. Upgrade pip and install dependencies.
 
 .. code-block:: bash
 
     python3 -m pip install --upgrade pip
     pip install -r app/requirements.txt
 
-Run the app
+3. Clone and build ptouch-print library inside Res folder from the following repo:
+    https://github.com/HenrikBengtsson/brother-ptouch-label-printer-on-linux
+
+4. Run the app.
 
 .. code-block:: bash
 
@@ -75,28 +77,31 @@ Run the app
 Windows (PowerShell)
 ~~~~~~~~~~~~~~~~~~~~
 
-Open PowerShell and go to the project folder (the folder containing app).
+1. Open PowerShell and go to the project folder (the folder containing app).
 
-Create a virtual environment
+2. Create a virtual environment.
 
 .. code-block:: bash
 
     python -m venv venv
 
-Activate the virtual environment
+3. Activate the virtual environment.
 
 .. code-block:: bash
 
     .\venv\Scripts\Activate.ps1
 
-Upgrade pip (optional but recommended) and install dependencies
+4. Upgrade pip (optional but recommended) and install dependencies.
 
 .. code-block:: bash
 
     python -m pip install --upgrade pip
     pip install -r app\requirements.txt
 
-Run the app
+5. Clone and build ptouch-print library inside Res folder from the following repo:
+    https://github.com/HenrikBengtsson/brother-ptouch-label-printer-on-linux
+
+6. Run the app.
 
 .. code-block:: bash
 
@@ -128,13 +133,13 @@ Notes before building:
 - On Windows the separator is a semicolon ``;``
 - The example names the build using the value of ``app/_version.py`` which defines ``__version__``
 
-Install PyInstaller
+1. Install PyInstaller.
 
 .. code-block:: bash
 
     pip install pyinstaller
 
-Obtain version number
+2. Obtain version number.
 
 Bash / Linux / macOS
 
@@ -148,7 +153,7 @@ Windows PowerShell
 
     $VERSION = python -c "from app._version import __version__; print(__version__)"
 
-Run PyInstaller from project root
+3. Run PyInstaller from project root.
 
 Linux / Raspberry Pi example (one-folder build)
 
