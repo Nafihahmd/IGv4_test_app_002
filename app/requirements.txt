@@ -9,3 +9,15 @@ et-xmlfile==2.0.0     # latest stable release
 
 # Appdirs for saving configs
 appdirs==1.4.4    # latest stable release
+
+# PyInstaller for building standalone executables
+pyinstaller==5.13.0   # latest stable release
+
+# Pyserial for serial communication
+pyserial==3.5         # latest stable release
+
+# QRCode for generating QR codes
+qrcode==7.4.2         # latest stable release
+
+# Pillow for image processing (used by qrcode)
+Pillow==10.4.0        # latest stable release
