@@ -2,6 +2,7 @@
 *.pyc
 Res/img/
 *.txt
+!app/requirements.txt
 test_results.xlsx
 mac_addr.xlsx
 mac_addr - Calculations.xlsx
