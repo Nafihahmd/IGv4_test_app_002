@@ -144,7 +144,7 @@ class SIMTest(UBootTester):
             self.connect()
             success = self.run_sim_test_case(self.setup_cmds,  self.test_cmd, self.expect, self.shell_prompt, 10)
         except Exception as e:
-            print("Error during Battery test:", e)
+            print("Error during SIM test:", e)
             success = False
         finally:
             self.disconnect()
