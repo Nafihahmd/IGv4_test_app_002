@@ -151,7 +151,8 @@ class HardwareTestApp:
         left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
         for test in self.tests:
             test_name = test["name"]
-            btn = tk.Button(left_frame, text=f"{test_name}: Pending", width=20,
+            btn = tk.Button(left_frame, text=f"{test_name}: Pending", width=20, 
+                            state=tk.DISABLED,
                             command=lambda name=test_name: self.run_test(name))
             btn.pack(pady=5)
             self.test_buttons[test_name] = btn
@@ -566,6 +567,12 @@ class HardwareTestApp:
                     self.serial_conn.write(('ecsi25').encode())  # Send magic key to interrupt autoboot
                     self.status_text.config(text="U-Boot detected; device connected")
                     self.update_reconnect_indicator(True)
+                    for test in self.tests:
+                        test_name = test["name"]
+                        btn = self.test_buttons.get(test_name)
+                        if btn:
+                            btn.config(state=tk.ACTIVE)
+                    return  # Exit after successful connection
             except Exception as e:
                 print("Error reading serial:", e)
         self.root.after(100, self.check_uboot_prompt)
