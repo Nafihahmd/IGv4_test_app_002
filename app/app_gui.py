@@ -7,6 +7,10 @@ import os
 import subprocess
 import configparser
 from appdirs import user_config_dir
+from help_gui import HelpCenter
+from _version import __version__
+from mac_generator import MACGeneratorFrame
+
 # Load configuration file
 cfg = configparser.ConfigParser()
 path = os.path.join(user_config_dir("IGTestApp","ECSI"), "settings.ini")
@@ -49,6 +53,11 @@ class HardwareTestApp:
         
         # Dictionary to store button widgets (for UI updates)
         self.test_buttons = {}
+
+        # Create GUI elements
+        self.help_window = None
+        # single-instance popup reference
+        self.mac_window = None
         
         # Serial connection handle (used for GUI-based serial connection monitoring)
         self.serial_conn = None
@@ -75,12 +84,14 @@ class HardwareTestApp:
         # Configure menu
         menu_bar.add_command(label="Configure", command=self.configure_parameters)
 
+        # MAC Generator menu
+        menu_bar.add_command(label="MAC Generator", command=self.show_mac_generator_popup)
+
         # Help Menu
-        help_menu = Menu(menu_bar, tearoff=0)
-        help_menu.add_command(label="Help", command=self.show_help)
-        # help_menu.add_command(label="About", command=self.show_about)
-        help_menu.add_separator()
-        # help_menu.add_command(label="Contact Support", command=self.contact_support)
+        help_menu = Menu(menu_bar, tearoff=0)        
+        help_menu.add_command(label="Help Center", command=self.show_help)
+        help_menu.add_command(label="About", command=self.show_about)
+        help_menu.add_command(label="Contact Support", command=self.contact_support)
         menu_bar.add_cascade(label="Help", menu=help_menu)
         
         self.root.config(menu=menu_bar)
@@ -443,15 +454,74 @@ class HardwareTestApp:
         self.model_number = cfg["device"]["model_number"]
         self.auto_advance = cfg.getboolean("ui", "auto_advance")
         self.print_labels = cfg.getboolean("ui", "print_label")
+    
+    def show_mac_generator_popup(self):
+        # If already exists, bring to front
+        if self.mac_window is not None and self.mac_window.winfo_exists():
+            if self.mac_window.state() == "iconic":
+                self.mac_window.deiconify()
+            self.mac_window.lift()
+            self.mac_window.focus_force()
+            return
+
+        # create the Toplevel
+        window = tk.Toplevel(self.root)
+        self.mac_window = window
+        window.title("MAC Generator")
+        window.resizable(False, False)
+        window.transient(self.root)
+
+        # embed the MACGeneratorFrame (pure tk)
+        mac_frame = MACGeneratorFrame(window)
+        mac_frame.grid(row=0, column=0, padx=12, pady=12, sticky="nsew")
+
+        close_btn = tk.Button(window, text="Close", command=window.destroy)
+        close_btn.grid(row=1, column=0, sticky="e", padx=12, pady=(0,12))
+
+        def _on_close():
+            try:
+                self.mac_window = None
+            finally:
+                window.destroy()
+
+        window.protocol("WM_DELETE_WINDOW", _on_close)
+
+        window.update_idletasks()
+        root_x = self.root.winfo_x()
+        root_y = self.root.winfo_y()
+        root_width = self.root.winfo_width()
+        win_width = window.winfo_reqwidth()
+        x = root_x + (root_width // 2) - (win_width // 2)
+        y = root_y + 10
+        window.geometry(f"+{x}+{y}")
+
+        window.grab_set()
+        window.focus_force()
 
     def show_help(self):
         """Display help information."""
-        messagebox.showinfo("Help", "This application conducts hardware tests via serial port.\n\n"
-                             "• Use the File menu to open/save results and configure parameters.\n"
-                             "• Use the buttons on the left to run tests.\n"
-                             "• For tests requiring manual input, use the Pass/Fail buttons on the right.\n"
-                             "• Use the Reconnect button to manually recheck the serial connection.")
+        if self.help_window is not None and self.help_window.winfo_exists():
+            # Window already open, just bring it to front
+            self.help_window.lift()
+            self.help_window.focus_force()
+        else:
+            # Create new help window
+            self.help_window = HelpCenter(self.root)
     
+    def show_about(self):
+        """Display help information."""
+        messagebox.showinfo(
+            f"About",  # Title in title case, no end punctuation
+            f"IGv4_test_app_{__version__} application tests IGv4 Boards\n\n"                  
+        )
+
+    def contact_support(self):
+        """Display help information."""
+        messagebox.showinfo(
+            "Support",  # Title in title case, no end punctuation
+            "email the developer at nafih.ahammed@econtrolsystems.com\n\n"                  
+        )
+
     def manual_reconnect(self):
         """Manually reconnect to the serial port."""
         self.connect_serial()
