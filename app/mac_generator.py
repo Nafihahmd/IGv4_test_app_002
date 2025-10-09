@@ -29,7 +29,7 @@ class MACGeneratorFrame(tk.Frame):
         path_frame = tk.Frame(self)
         path_frame.grid(row=2, column=1, sticky="ew", padx=5, pady=5)
         path_frame.columnconfigure(0, weight=1)
-        self.out_path_var = tk.StringVar(value="mac_addr1.xlsx")
+        self.out_path_var = tk.StringVar(value="mac_addr.xlsx")
         tk.Entry(path_frame, textvariable=self.out_path_var).grid(row=0, column=0, sticky="ew")
         tk.Button(path_frame, text="Browse...", command=self.browse_output).grid(row=0, column=1, padx=5)
 
