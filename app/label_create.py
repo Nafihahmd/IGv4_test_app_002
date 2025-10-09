@@ -107,7 +107,7 @@ def create_label(unit_id, model_number='', width=355, height=120):
         draw.text((text_x, text_y_top + 16), model_number, fill="black", font=font_large)
 
         # Draw unit id label and value near bottom of text area
-        unit_label_y = height - padding - 60
+        unit_label_y = height - padding - 50
         draw.text((text_x - 6, unit_label_y), "Unit ID:", fill="black", font=font_small)
         draw.text((text_x, unit_label_y + 15), unit_id_display, fill="black", font=font_large)
 
