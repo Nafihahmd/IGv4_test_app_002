@@ -10,6 +10,7 @@ from appdirs import user_config_dir
 from help_gui import HelpCenter
 from _version import __version__
 from mac_generator import MACGeneratorFrame
+from log import logger,initialize_logging # Custom logging setup
 
 # Load configuration file
 cfg = configparser.ConfigParser()
@@ -192,12 +193,16 @@ class HardwareTestApp:
 
     def log_message(self, msg):
         """Append a message to the log text widget in the GUI."""
-        self.log_text.configure(state=tk.NORMAL)
-        self.log_text.insert(tk.END, msg)
-        self.log_text.see(tk.END)
-        self.log_text.configure(state=tk.DISABLED)
-        # Force the GUI to update immediately so that new log entries appear in real time.
-        self.root.update_idletasks()
+        logger.info(msg)
+        try:
+            self.log_text.config(state=tk.NORMAL)
+            self.log_text.insert(tk.END, msg + "\n")
+            self.log_text.see(tk.END)
+            self.log_text.config(state=tk.DISABLED)
+            # Force GUI to update
+            self.root.update_idletasks()        
+        except Exception:
+            logger.warning("Could not update GUI log widget", exc_info=True)
 
     def clear_log(self):
         self.log_text.configure(state=tk.NORMAL)
@@ -578,6 +583,11 @@ class HardwareTestApp:
         self.root.after(2000, self.check_serial)
 
 if __name__ == "__main__":
+    success = initialize_logging(clean_logs=True)
+    if not success:
+        print("Warning: log setup failed, check stderr for details", file=sys.stderr)
+    
+    logger.info("Starting IGv4 Test Application")
     root = tk.Tk()
     app = HardwareTestApp(root)
     root.mainloop()

@@ -1,5 +1,6 @@
 from uboot_tester import UBootTester
 import time
+from log import logger
 
 # Ethernet Tester
 class Eth0Test(UBootTester):
@@ -28,7 +29,7 @@ class Eth0Test(UBootTester):
 
             success = self.run_test_case(self.setup_cmds, self.test_cmd, self.expect)
         except Exception as e:
-            print("Error during Ethernet test:", e)
+            logger.exception("Error during Ethernet test:")
             success = False
         finally:
             self.disconnect()
@@ -38,7 +39,7 @@ class Eth0Test(UBootTester):
 class RTCTest(UBootTester):
     def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
-        print("Initializing RTC Test")
+        logger.info("Initializing RTC Test")
         # Define the setup and test commands for a USB test
         self.test_cmd = 'date'
 
@@ -47,7 +48,7 @@ class RTCTest(UBootTester):
             self.connect()
             success = self.run_rtc_test_case(self.test_cmd, 3)
         except Exception as e:
-            print("Error during RTC test:", e)
+            logger.exception("Error during RTC test:")
             success = False
         finally:
             self.disconnect()
@@ -57,7 +58,7 @@ class RTCTest(UBootTester):
 class XbeeTest(UBootTester):
     def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
-        print("Initializing Xbee Test")
+        logger.info("Initializing Xbee Test")
         # Define the setup and test commands for a USB test
         self.setup_cmds = [
             'setenv stdin nuc980_serial1,nuc980_serial2',
@@ -73,7 +74,7 @@ class XbeeTest(UBootTester):
             self.connect()
             success = self.run_xbee_test_case(self.setup_cmds, 2)
         except Exception as e:
-            print("Error during Xbee test:", e)
+            logger.exception("Error during Xbee test:")
             success = False
         finally:
             self.disconnect()
@@ -83,7 +84,7 @@ class XbeeTest(UBootTester):
 class BatteryTest(UBootTester):
     def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
-        print("Initializing Battery Test")
+        logger.info("Initializing Battery Test")
         # Define the setup and test commands for a Battery test
         self.setup_cmds = [
             # 'mw 0xb000007c 0x00000000',   # Set MFP to GPIO on PB.13 (SYS_BA+0x07C)  SYS_BA=0xB000_0000 
@@ -97,7 +98,7 @@ class BatteryTest(UBootTester):
             self.connect()
             success = self.run_batt_test_case(self.setup_cmds, 10)
         except Exception as e:
-            print("Error during Battery test:", e)
+            logger.exception("Error during Battery test:")
             success = False
         finally:
             self.disconnect()
@@ -107,7 +108,7 @@ class BatteryTest(UBootTester):
 class RelayTest(UBootTester):
     def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
-        print("Initializing Relay Test")
+        logger.info("Initializing Relay Test")
         # Define the setup and test commands for a Relay test
         # Global GPIO Number = (Port Index × 32) + Pin Number
         self.setup_cmds = 'gpio toggle 12' # GPIO PA.12 (0x32 + 12)
@@ -122,7 +123,7 @@ class RelayTest(UBootTester):
                 time.sleep(1.0)
             return True
         except Exception as e:
-            print("Error during Relay test:", e)
+            logger.exception("Error during Relay test:")
             success = False
         finally:
             self.disconnect()
@@ -133,7 +134,7 @@ class RelayTest(UBootTester):
 class SIMTest(UBootTester):
     def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
-        print("Initializing SIM Test")
+        logger.info("Initializing SIM Test")
         self.setup_cmds = []           # No extra setup needed
         self.test_cmd = "boot"         # U-Boot boot command
         self.expect  = "kmodloader: done loading kernel modules from /etc/modules.d/*"
@@ -144,7 +145,7 @@ class SIMTest(UBootTester):
             self.connect()
             success = self.run_sim_test_case(self.setup_cmds,  self.test_cmd, self.expect, self.shell_prompt, 10)
         except Exception as e:
-            print("Error during SIM test:", e)
+            logger.exception("Error during SIM test:")
             success = False
         finally:
             self.disconnect()
@@ -155,7 +156,7 @@ class SIMTest(UBootTester):
 class USBTest(UBootTester):
     def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
-        print("Initializing USB Test")
+        logger.info("Initializing USB Test")
         # Define the setup and test commands for a USB test
         self.setup_cmds = 'lsusb'
         self.expect = [
@@ -169,7 +170,7 @@ class USBTest(UBootTester):
             self.connect()
             success = self.run_usb_test_case(self.setup_cmds, self.expect)
         except Exception as e:
-            print("Error during USB test:", e)
+            logger.exception("Error during USB test:")
             success = False
         finally:
             self.disconnect()
@@ -180,7 +181,7 @@ class USBTest(UBootTester):
 class BLETest(UBootTester):
     def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
-        print("Initializing BLE Test")
+        logger.info("Initializing BLE Test")
         # Define the setup and test commands for a USB test
         self.setup_cmds = ''
         self.expect = []
@@ -190,7 +191,7 @@ class BLETest(UBootTester):
             self._log("Check nRF BLE is available")
             return True
         except Exception as e:
-            print("Error during USB test:", e)
+            logger.exception("Error during USB test:")
             success = False
         finally:
             self.disconnect()

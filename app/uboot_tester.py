@@ -1,6 +1,7 @@
 import serial
 import time
 import re
+from log import logger
 
 class UBootTester:
     def __init__(self, port='/dev/ttyUSB0', baudrate=115200, timeout=0.1, debug=False, log_callback=None):
@@ -14,7 +15,7 @@ class UBootTester:
     def _log(self, msg):
         # Optionally log to GUI status and/or console
         if self.debug:
-            print("[DEBUG]", msg)
+            logger.debug(msg)
         if self.log_callback:
             self.log_callback(msg)
             

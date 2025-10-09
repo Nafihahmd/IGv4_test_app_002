@@ -11,3 +11,4 @@ dist/
 build/
 Res/ptouch-print/build/*
 !Res/ptouch-print/build/ptouch-print
+app/logs/

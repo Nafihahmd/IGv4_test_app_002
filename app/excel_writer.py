@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill
+from log import logger
 
 # Define the XLSX file path.
 TEST_REPORT = "test_results.xlsx"
@@ -23,9 +24,9 @@ def initialize_workbook():
         headers = ["Timestamp", "MAC Addr", "Ethernet", "RTC", "Xbee", "Battery", "Relay", "SIM", "USB", "BLE"]
         ws.append(headers)
         wb.save(TEST_REPORT)
-        print("Created new workbook with headers.")
+        logger.info("Created new workbook with headers.")
     else:
-        print("Workbook already exists.")
+        logger.info("Workbook already exists.")
 
 def append_test_results(test_results, mac_addr):
     """
@@ -59,7 +60,7 @@ def append_test_results(test_results, mac_addr):
             cell.fill = RED_FILL
 
     wb.save(TEST_REPORT)
-    print(f"Test results appended to row {row_index}.")
+    logger.info(f"Test results appended to row {row_index}.")
 
 def get_next_available_mac(mark_as_used=False):
     """
@@ -78,7 +79,7 @@ def get_next_available_mac(mark_as_used=False):
     """
     # Ensure that the file exists.
     if not os.path.exists(MAC_LIST):
-        print(f"Error: {MAC_LIST} does not exist.")
+        logger.error(f"Error: {MAC_LIST} does not exist.")
         return None
 
     try:
@@ -98,7 +99,7 @@ def get_next_available_mac(mark_as_used=False):
                 status_col_idx = idx
 
         if mac_col_idx is None or status_col_idx is None:
-            print("Error: Could not find required columns ('MAC addr' and 'Status').")
+            logger.error("Error: Could not find required columns ('MAC addr' and 'Status').")
             return None
 
         # Iterate over the rows starting from the second row.
@@ -116,12 +117,12 @@ def get_next_available_mac(mark_as_used=False):
                 else:
                     status_cell.value = "read"
                 wb.save(MAC_LIST)
-                print(f"MAC address {mac_cell.value} has been marked as {'used' if mark_as_used else 'read'}.")
+                logger.info(f"MAC address {mac_cell.value} has been marked as {'used' if mark_as_used else 'read'}.")
                 return mac_cell.value
 
-        print("No available MAC address found.")
+        logger.info("No available MAC address found.")
         return None
 
     except Exception as e:
-        print("Error reading or updating the Excel file:", e)
+        logger.exception("Error reading or updating the Excel file:")
         return None
