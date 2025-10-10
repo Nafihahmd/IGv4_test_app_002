@@ -364,7 +364,8 @@ class HardwareTestApp:
         #             f.write(f"{test}: {result}\n")
         #     messagebox.showinfo("Save Results", "Test results saved successfully.")
         self.mac_addr = get_next_available_mac(False) # Mark the current MAC address as read
-        append_test_results(self.test_results, self.mac_addr)
+        current_mac = self.mac_addr
+        expected = current_mac[-4:]  # last 4 hex digits
         if self.print_labels_var.get(): # Print labels if the checkbox is checked
             self.print_label()
         
