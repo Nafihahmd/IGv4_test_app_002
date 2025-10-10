@@ -313,12 +313,40 @@ class HardwareTestApp:
         img.save(output_path)
         self.status_label.config(text="Label created. Printing...\n")
 
-        # result = subprocess.run(["sudo chmod -R 777 /dev/bus/usb/"], capture_output=True, text=True)
-        subprocess.run([
-            "Res/ptouch-print/build/ptouch-print",
-            "--image",
-            "Res/img/label.png"
-        ])
+        def _run_printer():
+            cmd = [
+                "Res/ptouch-print/build/ptouch-print",
+                "--image",
+                "Res/img/label.png"
+            ]
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True)
+            except Exception as e:
+                # Could not even launch the process
+                return False, f"Execution error: {e}"
+
+            if result.returncode != 0:
+                # Printing failed; include stdout/stderr
+                err = result.stderr.strip() or result.stdout.strip()
+                return False, f"Printer error (code {result.returncode}): {err}"
+            return True, None
+
+    # Try printing, loop on user retry
+        while True:
+            success, err_msg = _run_printer()
+            if success:
+                self.status_label.config(text="Print succeeded.\n")
+                break
+            else:
+                # Show error + “Retry / Cancel”
+                ans = messagebox.askretrycancel("Print Error", f"Printing failed:\n{err_msg}\n\nRetry?")
+                if ans:
+                    # User chose Retry — repeat the loop
+                    continue
+                else:
+                    # Cancel – break out and indicate failure
+                    self.status_label.config(text="Print cancelled by user.\n")
+                    break
     
     def save_results(self):
         """
