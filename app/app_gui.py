@@ -367,6 +367,34 @@ class HardwareTestApp:
         append_test_results(self.test_results, self.mac_addr)
         if self.print_labels_var.get(): # Print labels if the checkbox is checked
             self.print_label()
+        
+        # Ask user with retries
+        MAX_RETRIES = 3
+        for attempt in range(MAX_RETRIES):
+            prompt = f"Enter last 4 hex digits of MAC ({expected[:1]}…):"
+            user_input = simpledialog.askstring("Verify MAC", prompt)
+
+            if user_input is None:
+                # User pressed Cancel
+                messagebox.showinfo("Save Results", "Save cancelled by user.")
+                return
+
+            user_input = user_input.strip().upper()
+            if user_input == expected:
+                # Verification succeeded
+                break
+            else:
+                # Wrong entry
+                if attempt < MAX_RETRIES - 1:
+                    messagebox.showwarning("Incorrect Entry",
+                        f"Incorrect. You have {MAX_RETRIES - attempt - 1} retries left.")
+                    continue
+                else:
+                    messagebox.showerror("Verification Failed", "MAC verification failed. Not saving results.")
+                    return
+        
+        append_test_results(self.test_results, self.mac_addr) 
+        logger.info(f"Test results saved for MAC {self.mac_addr}")
         self.reset_tests()
         # Get a new mac address for the next device
         self.mac_addr = get_next_available_mac(True)
