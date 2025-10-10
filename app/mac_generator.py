@@ -5,6 +5,7 @@ Provides MACGeneratorFrame (tk.Frame) that can be embedded in a Toplevel.
 import re
 import tkinter as tk
 from tkinter import filedialog, messagebox
+from excel_writer import get_next_available_mac
 
 try:
     from openpyxl import Workbook
@@ -18,7 +19,11 @@ class MACGeneratorFrame(tk.Frame):
         self.columnconfigure(1, weight=1)
 
         tk.Label(self, text="Start MAC:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
-        self.start_mac_var = tk.StringVar(value="00:01:9D:00:50:00")
+        # self.start_mac_var = tk.StringVar(value="00:01:9D:00:50:00")
+        next_available_mac = get_next_available_mac()  # Get the next available MAC address
+        if not next_available_mac:
+            next_available_mac = "00:01:9D:00:50:00"  # Fallback if no available MAC found
+        self.start_mac_var = tk.StringVar(value=next_available_mac)
         tk.Entry(self, textvariable=self.start_mac_var, width=30).grid(row=0, column=1, sticky="ew", padx=5, pady=5)
 
         tk.Label(self, text="Count (n):").grid(row=1, column=0, sticky="e", padx=5, pady=5)
