@@ -219,7 +219,7 @@ class UBootTester:
         self.ser.write((test_cmd + '\r\n').encode())
         time.sleep(0.5)  # Guard time
         
-        # Wait for OpenWRT to finish loading modules
+        # 2) Wait for OpenWRT to finish loading modules
         self._log(">>> Waiting for OpenWRT modules to finish loading...\n")
         if not self._wait_for_expected(expect, timeout=300):
             self._log(">>> ERROR: Timed out waiting for kmodloader\n")
@@ -295,7 +295,7 @@ class UBootTester:
             self.ser.write((cmd + '\r\n').encode())
             time.sleep(3.0) # wait for command to execute
             
-        time.sleep(2.0)  # Guard time
+        time.sleep(5.0)  # Guard time
         self.ser.reset_input_buffer()   # flush prior bytes
         self._log(f"\nRunning test commands:")
         for cmd in test_cmd[:2]:
@@ -303,7 +303,7 @@ class UBootTester:
             self.ser.write((cmd + '\r\n').encode())
             time.sleep(1)  # wait for command to execute
         
-        time.sleep(1)  # wait for command to execute
+        time.sleep(3)  # wait for command to execute
         
         output = ""
         if self.ser.in_waiting > 0:
