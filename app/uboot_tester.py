@@ -311,6 +311,12 @@ class UBootTester:
         
         # self._log(f"Output received:\n{output}\n\n")   #Uncomment for debugging
         results = self.check_wifi_status(output)
+
+        for cmd in test_cmd[2:]:
+            self._log(f"  -> {cmd}")
+            self.ser.write((cmd + '\r\n').encode())
+            time.sleep(.5)  # wait for command to execute
+
         return results
 
     def check_wifi_status(self, output):

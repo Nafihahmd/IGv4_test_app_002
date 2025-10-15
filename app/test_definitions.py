@@ -189,7 +189,7 @@ class WiFiTest(UBootTester):
         # Define the setup and test commands for a WiFi test
         self.setup_cmds = [
             'devmem 0xB00040B0 32 0x02000000', # Reset Esp32
-            "echo -e 'network={{\\n    ssid=\"{0}\"\\n    psk=\"{1}\"\\n    key_mgmt={2}\\n}}' > /tmp/mywpa.conf".format(
+            "echo -e 'network={{\n    ssid=\"{0}\"\n    psk=\"{1}\"\n    key_mgmt={2}\n}}' > /tmp/mywpa.conf".format(
         self.wifi_ssid, self.wifi_password, self.wifi_security
         ),  # create temporary wpa config
             'killall wpa_supplicant 2>/dev/null || true',  # kill any running wpa_supplicant on wlan0

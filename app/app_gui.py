@@ -544,7 +544,7 @@ class HardwareTestApp:
         else:
             cfg["network"] = {"sip": "192.168.0.1"}
             cfg["device"] = {"serial_port": "/dev/ttyUSB0", "model_number": "IG4-1000",
-                             "wifi_ssid": "SSID", "wifi_password": "Password", "wifi_security": "WPA2"}
+                             "wifi_ssid": "SSID", "wifi_password": "Password", "wifi_security": "WPA-PSK"}
             cfg["ui"] = {"auto_advance": "True", "print_label": "True"}
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "w") as f:
