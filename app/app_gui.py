@@ -28,7 +28,7 @@ class HardwareTestApp:
         self.mac_addr = get_next_available_mac(False)
         if self.mac_addr is None:
             # Handle the case where no MAC address is available
-            self._log("Warning: No available MAC address found!")
+            logger.error("Warning: No available MAC address found!")
 
         self.server_ip = "192.168.0.1"
         self.auto_advance = True
@@ -243,6 +243,9 @@ class HardwareTestApp:
             test_class = selected_test["class"]
             if test_class is Eth0Test:
                 self.mac_addr = get_next_available_mac(False)  # Read the MAC address from the Excel file
+                if self.mac_addr is None:
+                    messagebox.showerror("Error", "No available MAC address found! Please generate MAC file.")
+                    return
                 tester = test_class(port=self.serial_port,  mac_addr=self.mac_addr,  server_ip=self.server_ip, debug=True, log_callback=self.log_message)
             elif test_class is WiFiTest:
                 tester = test_class(port=self.serial_port, wifi_ssid=self.wifi_ssid, wifi_password=self.wifi_password, wifi_security=self.wifi_security, debug=True, log_callback=self.log_message)
