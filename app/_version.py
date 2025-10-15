@@ -3,8 +3,8 @@ import sys,platform
 
 # Version components
 MAJOR = 1
-MINOR = 0
-PATCH = 1
+MINOR = 1       # Incremented for WiFi feature addition
+PATCH = 0
 # — Detect OS — 
 if sys.platform.startswith("win"):
     OS_TAG = "windows"
