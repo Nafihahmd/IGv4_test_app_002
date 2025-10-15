@@ -28,11 +28,15 @@ class HardwareTestApp:
         self.mac_addr = get_next_available_mac(False)
         if self.mac_addr is None:
             # Handle the case where no MAC address is available
-            print("Warning: No available MAC address found!")
+            self._log("Warning: No available MAC address found!")
 
         self.server_ip = "192.168.0.1"
         self.auto_advance = True
         self.print_labels = True
+        # WiFi settings
+        self.wifi_ssid = "SSID"
+        self.wifi_password = "Password"
+        self.wifi_security = "WPA-PSK"  # Options: OPEN, WEP, WPA, WPA2
         # Load configuration settings
         self.load_config()
 
@@ -240,6 +244,8 @@ class HardwareTestApp:
             if test_class is Eth0Test:
                 self.mac_addr = get_next_available_mac(False)  # Read the MAC address from the Excel file
                 tester = test_class(port=self.serial_port,  mac_addr=self.mac_addr,  server_ip=self.server_ip, debug=True, log_callback=self.log_message)
+            elif test_class is WiFiTest:
+                tester = test_class(port=self.serial_port, wifi_ssid=self.wifi_ssid, wifi_password=self.wifi_password, wifi_security=self.wifi_security, debug=True, log_callback=self.log_message)
             else:
                 tester = test_class(port=self.serial_port, debug=True, log_callback=self.log_message)
             # Running the test (this call is blocking—use caution if test duration is long)
@@ -443,6 +449,24 @@ class HardwareTestApp:
         model_entry = tk.Entry(window, width=30)
         model_entry.insert(0, self.model_number)
         model_entry.grid(row=3, column=1, padx=5, pady=5)
+
+        # --- SSID field ---
+        tk.Label(window, text="WiFi SSID:").grid(row=4, column=0, sticky="e", padx=5, pady=5)
+        ssid_entry = tk.Entry(window, width=30)
+        ssid_entry.insert(0, self.wifi_ssid)
+        ssid_entry.grid(row=4, column=1, padx=5, pady=5)
+
+        # --- WiFi Password field ---
+        tk.Label(window, text="WiFi Password:").grid(row=5, column=0, sticky="e", padx=5, pady=5)
+        wifi_pass_entry = tk.Entry(window, width=30, show="*")
+        wifi_pass_entry.insert(0, self.wifi_password)
+        wifi_pass_entry.grid(row=5, column=1, padx=5, pady=5)
+
+        # --- WiFi Security Type field ---
+        tk.Label(window, text="WiFi Security:").grid(row=6, column=0, sticky="e", padx=5, pady=5)
+        security_entry = tk.Entry(window, width=30)
+        security_entry.insert(0, self.wifi_security)
+        security_entry.grid(row=6, column=1, padx=5, pady=5)
         
         # --- OK Button to save changes ---
         def on_ok():
@@ -450,6 +474,12 @@ class HardwareTestApp:
             self.server_ip = sip_entry.get()
             self.serial_port = serial_entry.get()
             self.model_number = model_entry.get()
+            self.wifi_ssid = ssid_entry.get()
+            self.wifi_password = wifi_pass_entry.get()
+            self.wifi_security = security_entry.get().upper()
+            if self.wifi_security not in ["OPEN", "WEP", "WPA", "WPA2", "WPA-PSK"]:
+                messagebox.showerror("Invalid Security Type", "WiFi Security must be one of: OPEN, WEP, WPA, WPA2")
+                return
             # Update the config file with new values
             self.save_config()  # Save current settings to disk
             # Optionally, you can show a message box or log the changes
@@ -461,7 +491,7 @@ class HardwareTestApp:
             #                     f"Model Number: {self.model_number}")
             window.destroy()
 
-        tk.Button(window, text="OK", command=on_ok).grid(row=4, column=0, columnspan=2, pady=10)
+        tk.Button(window, text="OK", command=on_ok).grid(row=7, column=0, columnspan=2, pady=10)
         
         # Update window to ensure its size is computed.
         window.update_idletasks()
@@ -492,6 +522,9 @@ class HardwareTestApp:
         cfg["network"]["sip"] = self.server_ip
         cfg["device"]["serial_port"] = self.serial_port
         cfg["device"]["model_number"] = self.model_number
+        cfg["device"]["wifi_ssid"] = self.wifi_ssid
+        cfg["device"]["wifi_password"] = self.wifi_password
+        cfg["device"]["wifi_security"] = self.wifi_security
         cfg["ui"]["auto_advance"] = str(self.auto_advance_var.get())
         cfg["ui"]["print_label"] = str(self.print_labels_var.get())
         
@@ -507,7 +540,8 @@ class HardwareTestApp:
             cfg.read(path)
         else:
             cfg["network"] = {"sip": "192.168.0.1"}
-            cfg["device"] = {"serial_port": "/dev/ttyUSB0", "model_number": "IG4-1000"}
+            cfg["device"] = {"serial_port": "/dev/ttyUSB0", "model_number": "IG4-1000",
+                             "wifi_ssid": "SSID", "wifi_password": "Password", "wifi_security": "WPA2"}
             cfg["ui"] = {"auto_advance": "True", "print_label": "True"}
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "w") as f:
@@ -516,6 +550,9 @@ class HardwareTestApp:
         self.server_ip = cfg["network"]["sip"]
         self.serial_port = cfg["device"]["serial_port"]
         self.model_number = cfg["device"]["model_number"]
+        self.wifi_ssid = cfg["device"]["wifi_ssid"]
+        self.wifi_password = cfg["device"]["wifi_password"]
+        self.wifi_security = cfg["device"]["wifi_security"]
         self.auto_advance = cfg.getboolean("ui", "auto_advance")
         self.print_labels = cfg.getboolean("ui", "print_label")
     

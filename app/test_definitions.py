@@ -180,13 +180,18 @@ class USBTest(UBootTester):
 
 # WiFi Tester
 class WiFiTest(UBootTester):
-    def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
+    def __init__(self, wifi_ssid=None, wifi_password=None, wifi_security=None, port='/dev/ttyUSB0', debug=False, log_callback=None):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
         logger.info("Initializing WiFi Test")
+        self.wifi_ssid = wifi_ssid
+        self.wifi_password = wifi_password
+        self.wifi_security = wifi_security  # Options: OPEN, WEP, WPA, WPA2
         # Define the setup and test commands for a WiFi test
         self.setup_cmds = [
             'devmem 0xB00040B0 32 0x02000000', # Reset Esp32
-            "echo -e 'network={\\n    ssid=\"TP-Link_B8F8\"\\n    psk=\"78620797\"\\n    key_mgmt=WPA-PSK\\n}' > /tmp/mywpa.conf",  # create temporary wpa config
+            "echo -e 'network={{\\n    ssid=\"{0}\"\\n    psk=\"{1}\"\\n    key_mgmt={2}\\n}}' > /tmp/mywpa.conf".format(
+        self.wifi_ssid, self.wifi_password, self.wifi_security
+        ),  # create temporary wpa config
             'killall wpa_supplicant 2>/dev/null || true',  # kill any running wpa_supplicant on wlan0
             'wpa_supplicant -B -i wlan0 -c /tmp/mywpa.conf',               # run in background
             'udhcpc -i wlan0 -q -t 5',  # request an IP via udhcpc (OpenWrt's DHCP client)
@@ -200,10 +205,10 @@ class WiFiTest(UBootTester):
 
     def run(self):
         try:
-            self._log("Check nRF WiFi is available")
+            self._log("Check WiFi is available")
             self.connect()
             success = self.run_wifi_test_case(self.setup_cmds, self.test_cmd, self.expect, 10)
-            return True
+            return success
         except Exception as e:
             logger.exception("Error during WiFi test:")
             success = False

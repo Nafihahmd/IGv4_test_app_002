@@ -309,7 +309,7 @@ class UBootTester:
         if self.ser.in_waiting > 0:
             output = self.ser.read(self.ser.in_waiting).decode(errors='ignore')
         
-        # self._log(f"Output received:\n{output}\n\n")
+        # self._log(f"Output received:\n{output}\n\n")   #Uncomment for debugging
         results = self.check_wifi_status(output)
         return results
 
