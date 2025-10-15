@@ -159,13 +159,13 @@ Linux / Raspberry Pi example (one-folder build)
 
 .. code-block:: bash
 
-    pyinstaller --clean app/app_gui.py -n "IGv4_test_app_$VERSION" --add-data "Res/*:Res"
+    pyinstaller --clean app/app_gui.py -n "IGv4_test_app_$VERSION" --add-data "Res/*:Res" --contents-directory src
 
 Windows PowerShell example (one-folder build)
 
 .. code-block:: bash
 
-    pyinstaller --clean app/app_gui.py -n "IGv4_test_app_$VERSION" --add-data "Res/*;Res"
+    pyinstaller --clean app/app_gui.py -n "IGv4_test_app_$VERSION" --add-data "Res/*;Res" --contents-directory src
 
 - After the build finishes the built app will be under ``dist/IGv4_test_app_<version>/`` and the executable will be inside that folder.
 

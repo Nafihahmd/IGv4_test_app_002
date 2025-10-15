@@ -11,7 +11,7 @@ et-xmlfile==2.0.0     # latest stable release
 appdirs==1.4.4    # latest stable release
 
 # PyInstaller for building standalone executables
-pyinstaller==5.13.0   # latest stable release
+pyinstaller==6.16.0   # latest stable release
 
 # Pyserial for serial communication
 pyserial==3.5         # latest stable release
