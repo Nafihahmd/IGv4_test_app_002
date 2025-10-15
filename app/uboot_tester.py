@@ -287,6 +287,100 @@ class UBootTester:
             time.sleep(0.1)
         return ''.join(output)
 
+# WiFi Tester
+    def run_wifi_test_case(self, setup_cmds, test_cmd, expect, wait_time=10):
+        self._log("Sending setup commands:")
+        for cmd in setup_cmds:
+            self._log(f"  -> {cmd}")
+            self.ser.write((cmd + '\r\n').encode())
+            time.sleep(3.0) # wait for command to execute
+            
+        time.sleep(2.0)  # Guard time
+        self.ser.reset_input_buffer()   # flush prior bytes
+        self._log(f"\nRunning test commands:")
+        for cmd in test_cmd[:2]:
+            self._log(f"  -> {cmd}")
+            self.ser.write((cmd + '\r\n').encode())
+            time.sleep(1)  # wait for command to execute
+        
+        time.sleep(1)  # wait for command to execute
+        
+        output = ""
+        if self.ser.in_waiting > 0:
+            output = self.ser.read(self.ser.in_waiting).decode(errors='ignore')
+        
+        # self._log(f"Output received:\n{output}\n\n")
+        results = self.check_wifi_status(output)
+        return results
+
+    def check_wifi_status(self, output):
+        """
+        Check WiFi status output for specific patterns and extract information.
+        Returns: dict with status and extracted data
+        """
+        results = {
+            'connected': False,
+            'mac_address': None,
+            'ip_address': None,
+            'rx_bytes': 0,
+            'tx_bytes': 0,
+            'all_checks_passed': False
+        }
+        
+        # Pattern 1: Connected to <MAC Address> (on wlan0)
+        mac_pattern = r'Connected to ([0-9a-fA-F:]{17})\s*\(on wlan0\)'
+        mac_match = re.search(mac_pattern, output)
+        if mac_match:
+            results['connected'] = True
+            results['mac_address'] = mac_match.group(1)
+            self._log(f"✓ Connected to MAC: {mac_match.group(1)}")
+        else:
+            self._log("✗ Not connected to any MAC address")
+        
+        # Pattern 2: inet addr: <device ip address>
+        ip_pattern = r'inet addr:(\d+\.\d+\.\d+\.\d+)'
+        ip_match = re.search(ip_pattern, output)
+        if ip_match:
+            results['ip_address'] = ip_match.group(1)
+            self._log(f"✓ IP Address obtained: {ip_match.group(1)}")
+        else:
+            self._log("✗ No IP address assigned")
+        
+        # Pattern 3 & 4: RX and TX bytes (greater than 0)
+        rx_pattern = r'RX.*?bytes:(\d+)'
+        tx_pattern = r'TX.*?bytes:(\d+)'
+        
+        rx_match = re.search(rx_pattern, output)
+        tx_match = re.search(tx_pattern, output)
+        
+        if rx_match:
+            rx_bytes = int(rx_match.group(1))
+            results['rx_bytes'] = rx_bytes
+            if rx_bytes > 0:
+                self._log(f"✓ RX bytes: {rx_bytes} (greater than 0)")
+            else:
+                self._log(f"✗ RX bytes: {rx_bytes} (should be greater than 0)")
+        
+        if tx_match:
+            tx_bytes = int(tx_match.group(1))
+            results['tx_bytes'] = tx_bytes
+            if tx_bytes > 0:
+                self._log(f"✓ TX bytes: {tx_bytes} (greater than 0)")
+            else:
+                self._log(f"✗ TX bytes: {tx_bytes} (should be greater than 0)")
+        
+        # Check if all conditions are met
+        if (results['connected'] and 
+            results['ip_address'] and 
+            results['rx_bytes'] > 0 and 
+            results['tx_bytes'] > 0):
+            results['all_checks_passed'] = True
+            self._log("✓ All WiFi checks passed!")
+            return True
+        else:
+            self._log("✗ Some WiFi checks failed")
+            return False
+
 # USB Tester
     def run_usb_test_case(self, setup_cmds, expect):
         self.ser.reset_input_buffer()   # flush prior bytes

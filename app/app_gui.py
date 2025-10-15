@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, Menu, simpledialog
-from test_definitions import Eth0Test, USBTest, RTCTest, XbeeTest, BatteryTest, RelayTest, SIMTest, BLETest  # Importing our test classes
+from test_definitions import Eth0Test, USBTest, RTCTest, XbeeTest, BatteryTest, RelayTest, SIMTest, BLETest, WiFiTest  # Importing our test classes
 from excel_writer import append_test_results, get_next_available_mac
 from label_create import create_label
 import os
@@ -48,6 +48,7 @@ class HardwareTestApp:
             {"name": "Relay Test", "requires_input": True, "class": RelayTest},
             {"name": "SIM Test", "requires_input": False, "class": SIMTest},
             {"name": "USB Test", "requires_input": False, "class": USBTest},
+            {"name": "WiFi Test", "requires_input": False, "class": WiFiTest},
             {"name": "BLE Test", "requires_input": True, "class": BLETest},
             # {"name": "Button Test", "requires_input": False, "class": ButtonTest},
         ]

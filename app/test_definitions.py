@@ -177,7 +177,39 @@ class USBTest(UBootTester):
         finally:
             self.disconnect()
         return success
-       
+
+# WiFi Tester
+class WiFiTest(UBootTester):
+    def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
+        super().__init__(port=port, debug=debug, log_callback=log_callback)
+        logger.info("Initializing WiFi Test")
+        # Define the setup and test commands for a WiFi test
+        self.setup_cmds = [
+            'devmem 0xB00040B0 32 0x02000000', # Reset Esp32
+            "echo -e 'network={\\n    ssid=\"TP-Link_B8F8\"\\n    psk=\"78620797\"\\n    key_mgmt=WPA-PSK\\n}' > /tmp/mywpa.conf",  # create temporary wpa config
+            'killall wpa_supplicant 2>/dev/null || true',  # kill any running wpa_supplicant on wlan0
+            'wpa_supplicant -B -i wlan0 -c /tmp/mywpa.conf',               # run in background
+            'udhcpc -i wlan0 -q -t 5',  # request an IP via udhcpc (OpenWrt's DHCP client)
+        ]
+        self.test_cmd =['iw dev wlan0 link', # check connection status
+                        'ifconfig wlan0',
+                        'killall wpa_supplicant',
+                        'ifdown wlan0 2>/dev/null || true',  # bring down wlan0 interface
+                        ]
+        self.expect = ['Connected to',]
+
+    def run(self):
+        try:
+            self._log("Check nRF WiFi is available")
+            self.connect()
+            success = self.run_wifi_test_case(self.setup_cmds, self.test_cmd, self.expect, 10)
+            return True
+        except Exception as e:
+            logger.exception("Error during WiFi test:")
+            success = False
+        finally:
+            self.disconnect()
+        return success
 # BLE Tester
 # To-Do: Make it automatic
 class BLETest(UBootTester):
