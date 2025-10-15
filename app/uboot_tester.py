@@ -293,9 +293,9 @@ class UBootTester:
         for cmd in setup_cmds:
             self._log(f"  -> {cmd}")
             self.ser.write((cmd + '\r\n').encode())
-            time.sleep(3.0) # wait for command to execute
+            time.sleep(2) # wait for command to execute
             
-        time.sleep(5.0)  # Guard time
+        time.sleep(10.0)  # Guard time
         self.ser.reset_input_buffer()   # flush prior bytes
         self._log(f"\nRunning test commands:")
         for cmd in test_cmd[:2]:
