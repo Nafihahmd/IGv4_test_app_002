@@ -143,7 +143,7 @@ class UBootTester:
 #Xbee Tester    
     def run_xbee_test_case(self, setup_cmds, wait_time=2):
         self._log("Sending setup command \n")
-        for cmd in setup_cmds[:3]:
+        for cmd in setup_cmds[:5]:
             print(f"  -> {cmd}")
             self.send_command_quick(cmd)
 
@@ -168,7 +168,7 @@ class UBootTester:
         # self._log(output_decoded)
         time.sleep(0.5)
         #self._log("Undoing Configurations \n")
-        for cmd in setup_cmds[3:]:
+        for cmd in setup_cmds[5:]:
             print(f"  -> {cmd}")
             self.send_command_quick(cmd)
         time.sleep(0.5)

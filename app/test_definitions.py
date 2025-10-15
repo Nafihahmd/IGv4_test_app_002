@@ -12,7 +12,7 @@ class Eth0Test(UBootTester):
         formatted_mac = ":".join(self.mac_addr[i:i+2] for i in range(0, 12, 2))
         self.setup_cmds = [
             f'setenv ethaddr {formatted_mac}',
-            f'setenv bootargs "console=ttyS1,115200 ethaddr0={formatted_mac}"',
+            f'setenv bootargs "console=ttyS0,115200 ethaddr0={formatted_mac}"',
             'setenv ipaddr 192.168.0.218',
             f'setenv serverip {self.server_ip}',
             'setenv netmask 255.255.255.0',
@@ -61,11 +61,13 @@ class XbeeTest(UBootTester):
         logger.info("Initializing Xbee Test")
         # Define the setup and test commands for a USB test
         self.setup_cmds = [
-            'setenv stdin nuc980_serial1,nuc980_serial2',
-            'setenv stdout nuc980_serial1,nuc980_serial2',
+            'setenv stdin nuc980_serial0,nuc980_serial2',
+            'setenv stdout nuc980_serial0,nuc980_serial2',
+            'mw 0xb0000080 0x33333300',  # Set MFP RST PIN 0
+            'gpio set 65',               # Set RST PIN (PC1) high
             'mw 0xb0072024 0x300004e0',  # Set UART2 to 9600 baud rate
-            'setenv stdin nuc980_serial1',
-            'setenv stdout nuc980_serial1',
+            'setenv stdin nuc980_serial0',
+            'setenv stdout nuc980_serial0',
         ]
         # self.test_cmd = 'AT\r'
 
