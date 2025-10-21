@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox, Menu, simpledialog
+from tkinter import filedialog, messagebox, Menu, simpledialog, ttk
 from test_definitions import Eth0Test, USBTest, RTCTest, XbeeTest, BatteryTest, RelayTest, SIMTest, BLETest, WiFiTest  # Importing our test classes
 from excel_writer import append_test_results, get_next_available_mac
 from label_create import create_label
@@ -24,6 +24,7 @@ class HardwareTestApp:
         
         # Default serial port (configurable via the menu)
         self.serial_port = "/dev/ttyUSB0"
+        self.minipcie_slot = 'ttyS0'  # Default mini PCIe slot
         self.model_number = "IG4-1000"
         self.mac_addr = get_next_available_mac(False)
         if self.mac_addr is None:
@@ -246,9 +247,11 @@ class HardwareTestApp:
                 if self.mac_addr is None:
                     messagebox.showerror("Error", "No available MAC address found! Please generate MAC file.")
                     return
-                tester = test_class(port=self.serial_port,  mac_addr=self.mac_addr,  server_ip=self.server_ip, debug=True, log_callback=self.log_message)
+                tester = test_class(port=self.serial_port, slot=self.minipcie_slot, mac_addr=self.mac_addr,  server_ip=self.server_ip, debug=True, log_callback=self.log_message)
             elif test_class is WiFiTest:
                 tester = test_class(port=self.serial_port, wifi_ssid=self.wifi_ssid, wifi_password=self.wifi_password, wifi_security=self.wifi_security, debug=True, log_callback=self.log_message)
+            elif test_class is XbeeTest:
+                tester = test_class(port=self.serial_port, slot=self.minipcie_slot, debug=True, log_callback=self.log_message)
             else:
                 tester = test_class(port=self.serial_port, debug=True, log_callback=self.log_message)
             # Running the test (this call is blocking—use caution if test duration is long)
@@ -446,36 +449,43 @@ class HardwareTestApp:
         serial_entry = tk.Entry(window, width=30)
         serial_entry.insert(0, self.serial_port)
         serial_entry.grid(row=2, column=1, padx=5, pady=5)
+
+        # --- Mini PCIe Slot field ---
+        tk.Label(window, text="Mini PCIe Slot:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
+        slot_combobox = ttk.Combobox(window, width=28, values=["Slot 1", "Slot 2"])
+        slot_combobox.set(self.minipcie_slot)  # Set to current value or default
+        slot_combobox.grid(row=3, column=1, padx=5, pady=5)
         
         # --- Model Number field ---
-        tk.Label(window, text="Model Number:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(window, text="Model Number:").grid(row=4, column=0, sticky="e", padx=5, pady=5)
         model_entry = tk.Entry(window, width=30)
         model_entry.insert(0, self.model_number)
-        model_entry.grid(row=3, column=1, padx=5, pady=5)
+        model_entry.grid(row=4, column=1, padx=5, pady=5)
 
         # --- SSID field ---
-        tk.Label(window, text="WiFi SSID:").grid(row=4, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(window, text="WiFi SSID:").grid(row=5, column=0, sticky="e", padx=5, pady=5)
         ssid_entry = tk.Entry(window, width=30)
         ssid_entry.insert(0, self.wifi_ssid)
-        ssid_entry.grid(row=4, column=1, padx=5, pady=5)
+        ssid_entry.grid(row=5, column=1, padx=5, pady=5)
 
         # --- WiFi Password field ---
-        tk.Label(window, text="WiFi Password:").grid(row=5, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(window, text="WiFi Password:").grid(row=6, column=0, sticky="e", padx=5, pady=5)
         wifi_pass_entry = tk.Entry(window, width=30, show="*")
         wifi_pass_entry.insert(0, self.wifi_password)
-        wifi_pass_entry.grid(row=5, column=1, padx=5, pady=5)
+        wifi_pass_entry.grid(row=6, column=1, padx=5, pady=5)
 
         # --- WiFi Security Type field ---
-        tk.Label(window, text="WiFi Security:").grid(row=6, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(window, text="WiFi Security:").grid(row=7, column=0, sticky="e", padx=5, pady=5)
         security_entry = tk.Entry(window, width=30)
         security_entry.insert(0, self.wifi_security)
-        security_entry.grid(row=6, column=1, padx=5, pady=5)
+        security_entry.grid(row=7, column=1, padx=5, pady=5)
         
         # --- OK Button to save changes ---
         def on_ok():
             # self.mac_addr = mac_entry.get()   # MAC address is fixed and not editable
             self.server_ip = sip_entry.get()
             self.serial_port = serial_entry.get()
+            self.minipcie_slot = slot_combobox.get()
             self.model_number = model_entry.get()
             self.wifi_ssid = ssid_entry.get()
             self.wifi_password = wifi_pass_entry.get()
@@ -494,7 +504,7 @@ class HardwareTestApp:
             #                     f"Model Number: {self.model_number}")
             window.destroy()
 
-        tk.Button(window, text="OK", command=on_ok).grid(row=7, column=0, columnspan=2, pady=10)
+        tk.Button(window, text="OK", command=on_ok).grid(row=8, column=0, columnspan=2, pady=10)
         
         # Update window to ensure its size is computed.
         window.update_idletasks()
@@ -524,6 +534,7 @@ class HardwareTestApp:
         # Save the current settings to the config file
         cfg["network"]["sip"] = self.server_ip
         cfg["device"]["serial_port"] = self.serial_port
+        cfg["device"]["minipcie_slot"] = self.minipcie_slot
         cfg["device"]["model_number"] = self.model_number
         cfg["device"]["wifi_ssid"] = self.wifi_ssid
         cfg["device"]["wifi_password"] = self.wifi_password
@@ -543,7 +554,7 @@ class HardwareTestApp:
             cfg.read(path)
         else:
             cfg["network"] = {"sip": "192.168.0.1"}
-            cfg["device"] = {"serial_port": "/dev/ttyUSB0", "model_number": "IG4-1000",
+            cfg["device"] = {"serial_port": "/dev/ttyUSB0", "model_number": "IG4-1000", "minipcie_slot": "Slot 1",
                              "wifi_ssid": "SSID", "wifi_password": "Password", "wifi_security": "WPA-PSK"}
             cfg["ui"] = {"auto_advance": "True", "print_label": "True"}
             os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -552,6 +563,7 @@ class HardwareTestApp:
 
         self.server_ip = cfg["network"]["sip"]
         self.serial_port = cfg["device"]["serial_port"]
+        self.minipcie_slot = cfg["device"]["minipcie_slot"]
         self.model_number = cfg["device"]["model_number"]
         self.wifi_ssid = cfg["device"]["wifi_ssid"]
         self.wifi_password = cfg["device"]["wifi_password"]

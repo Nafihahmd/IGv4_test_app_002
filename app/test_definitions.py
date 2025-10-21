@@ -4,15 +4,17 @@ from log import logger
 
 # Ethernet Tester
 class Eth0Test(UBootTester):
-    def __init__(self, mac_addr=None, server_ip=None, port='/dev/ttyUSB0', debug=False, log_callback=None):
+    def __init__(self, mac_addr=None, server_ip=None, port='/dev/ttyUSB0', slot='Slot 1', debug=False, log_callback=None):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
         # Define the setup and test commands for a Ethernet test
         self.mac_addr = mac_addr
         self.server_ip = server_ip
+        linux_port = 'ttyS0' if slot.startswith('Slot 1') else 'ttyS1'
+        logger.info(f"Initializing Linux Tests on {linux_port}")
         formatted_mac = ":".join(self.mac_addr[i:i+2] for i in range(0, 12, 2))
         self.setup_cmds = [
             f'setenv ethaddr {formatted_mac}',
-            f'setenv bootargs "console=ttyS0,115200 ethaddr0={formatted_mac}"',
+            f'setenv bootargs "console={linux_port},115200 ethaddr0={formatted_mac}"',
             'setenv ipaddr 192.168.0.218',
             f'setenv serverip {self.server_ip}',
             'setenv netmask 255.255.255.0',
@@ -56,18 +58,19 @@ class RTCTest(UBootTester):
     
 # Xbee Tester
 class XbeeTest(UBootTester):
-    def __init__(self, port='/dev/ttyUSB0', debug=False, log_callback=None):
+    def __init__(self, port='/dev/ttyUSB0', slot='Slot 1', debug=False, log_callback=None):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
         logger.info("Initializing Xbee Test")
         # Define the setup and test commands for a USB test
+        uboot_port = 'nuc980_serial0' if slot.startswith('Slot 1') else 'nuc980_serial1'
         self.setup_cmds = [
-            'setenv stdin nuc980_serial0,nuc980_serial2',
-            'setenv stdout nuc980_serial0,nuc980_serial2',
+            f'setenv stdin {uboot_port},nuc980_serial2',
+            f'setenv stdout {uboot_port},nuc980_serial2',
             'mw 0xb0000080 0x33333300',  # Set MFP RST PIN 0
             'gpio set 65',               # Set RST PIN (PC1) high
             'mw 0xb0072024 0x300004e0',  # Set UART2 to 9600 baud rate
-            'setenv stdin nuc980_serial0',
-            'setenv stdout nuc980_serial0',
+            f'setenv stdin {uboot_port}',
+            f'setenv stdout {uboot_port}',
         ]
         # self.test_cmd = 'AT\r'
 
