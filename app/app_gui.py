@@ -163,7 +163,7 @@ class HardwareTestApp:
         for test in self.tests:
             test_name = test["name"]
             btn = tk.Button(left_frame, text=f"{test_name}: Pending", width=20, 
-                            state=tk.DISABLED,
+                            # state=tk.DISABLED,
                             command=lambda name=test_name: self.run_test(name))
             btn.pack(pady=5)
             self.test_buttons[test_name] = btn
@@ -222,7 +222,7 @@ class HardwareTestApp:
         self.log_text.configure(state=tk.DISABLED)
         
     def os_selection_popup(self, test_name, os_name):
-        if self.serial_conn is None:
+        if self.serial_conn is None or os_name not in ["U-Boot", "OpenWRT"]:
             logger.error("Serial connection not established.")
             messagebox.showerror("Error", "Serial connection not established.")
             return
@@ -259,9 +259,10 @@ class HardwareTestApp:
         # Clear the log widget after the test completes.
         self.clear_log()
 
-        if selected_test["os"] == "uboot" and self.terminal_state != "uboot":
-            self.os_selection_popup(test_name, "U-Boot")
-            return
+        # Commenting for the time being
+        # if selected_test["os"] == "uboot" and self.terminal_state != "uboot":
+        #     self.os_selection_popup(test_name, "U-Boot")
+        #     return
         
         if selected_test["os"] == "openwrt" and self.terminal_state != "linux":
             self.os_selection_popup(test_name, "OpenWRT")
@@ -729,14 +730,21 @@ class HardwareTestApp:
         Look for the "Hit any key to stop autoboot:" prompt.
         When found, send a key to interrupt autoboot and update the status to 'device connected'.
         """
+        # print("Checking for U-Boot prompt...")
         if self.serial_conn and self.serial_conn.in_waiting:
+            
+            # print("Device connected to U-Boot.")
             try:
                 line = self.serial_conn.readline().decode("utf-8", errors="ignore")
-                if "Autoboot in 1 seconds" in line:
-                    print("U-Boot prompt detected, sending interrupt command.")
+                # if "Autoboot in 1 seconds" in line:
+                if "Hit any key to stop autoboot" in line:
+                    # print("U-Boot prompt detected, sending interrupt command.")
                     self.serial_conn.write(('ecsi25').encode())  # Send magic key to interrupt autoboot
                     self.status_text.config(text="U-Boot detected; device connected")
                     self.update_reconnect_indicator(True)
+                    self.connection_status = 1  # Mark as connected
+                    self.terminal_state = "uboot"
+                    # Enable all test buttons now that the device is connected
                     for test in self.tests:
                         test_name = test["name"]
                         btn = self.test_buttons.get(test_name)
@@ -746,7 +754,6 @@ class HardwareTestApp:
             except Exception as e:
                 print("Error reading serial:", e)
         self.root.after(100, self.check_uboot_prompt)
-
     
     def check_serial(self):
         """
@@ -755,9 +762,74 @@ class HardwareTestApp:
         """
         if not self.serial_conn:
             self.connect_serial()
+            # print("Attempting to connect to serial port...")
         else:
             self.check_uboot_prompt()
+        # else:
+        #     # terminal_state = self.detect_terminal_state()
+        #     # if terminal_state == "uboot":
+        #     #     # print("Connected: U-Boot terminal detected")
+        #     #     self.connection_status = True
+        #     #     self.terminal_state = "uboot"
+        #     # elif terminal_state == "linux":
+        #     #     # print("Connected: Linux terminal detected")
+        #     #     self.connection_status = True
+        #     #     self.terminal_state = "linux"
+        #     # elif terminal_state == "unknown":
+        #     #     # print("Connected: Terminal type unknown")
+        #     #     self.connection_status = True
+        #     #     self.terminal_state = "unknown"
+        #     # else:
+        #     #     # print("Serial port connected but no terminal detected")
+        #     #     self.connection_status = False
+        #     #     self.terminal_state = "unknown"
+    
         self.root.after(2000, self.check_serial)
+
+    # def detect_terminal_state(self):
+    #     """
+    #     Detect whether we're at U-Boot terminal or Linux terminal
+    #     Returns: "uboot", "linux", "unknown", or "disconnected"
+    #     """
+    #     if not self.serial_conn:
+    #         return "disconnected"
+        
+    #     try:
+    #         # Send a newline to trigger a prompt
+    #         self.serial_conn.write(b'\r\n')
+    #         time.sleep(0.1)  # Small delay for response
+            
+    #         # Read available data
+    #         if self.serial_conn.in_waiting > 0:
+    #             data = self.serial_conn.read(self.serial_conn.in_waiting).decode('utf-8', errors='ignore')
+                
+    #             # Check for U-Boot patterns
+    #             uboot_patterns = [
+    #                 r'=>\s*$',
+    #                 r'U-Boot #'
+    #             ]
+                
+    #             # Check for Linux patterns
+    #             linux_patterns = [
+    #                 r'root@',
+    #                 r'#\s*$',
+    #             ]
+                
+    #             # Test patterns                
+    #             self.check_uboot_prompt()  # Try to re-establish U-Boot connection
+    #             for pattern in uboot_patterns:
+    #                 if re.search(pattern, data, re.IGNORECASE):
+    #                     return "uboot"
+                
+    #             for pattern in linux_patterns:
+    #                 if re.search(pattern, data, re.IGNORECASE):
+    #                     return "linux"
+                
+    #         return "disconnected"
+        
+    #     except Exception as e:
+    #         print(f"Error detecting terminal state: {e}")
+    #         return "unknown"
 
 if __name__ == "__main__":
     success = initialize_logging(clean_logs=True)
