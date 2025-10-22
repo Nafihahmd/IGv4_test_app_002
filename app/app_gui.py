@@ -163,7 +163,7 @@ class HardwareTestApp:
         for test in self.tests:
             test_name = test["name"]
             btn = tk.Button(left_frame, text=f"{test_name}: Pending", width=20, 
-                            # state=tk.DISABLED,
+                            state=tk.DISABLED,
                             command=lambda name=test_name: self.run_test(name))
             btn.pack(pady=5)
             self.test_buttons[test_name] = btn
@@ -712,7 +712,7 @@ class HardwareTestApp:
                 if "root@" in line or "# " in line:
                     self.status_text.config(text="OpenWRT detected; device connected")
                     self.update_reconnect_indicator(True)
-                    self.connection_status = 1  # Mark as connected
+                    self.connection_status = True  # Mark as connected
                     self.terminal_state = "linux"
                     # Enable all test buttons now that the device is connected
                     for test in self.tests:
@@ -736,13 +736,13 @@ class HardwareTestApp:
             # print("Device connected to U-Boot.")
             try:
                 line = self.serial_conn.readline().decode("utf-8", errors="ignore")
-                # if "Autoboot in 1 seconds" in line:
-                if "Hit any key to stop autoboot" in line:
-                    # print("U-Boot prompt detected, sending interrupt command.")
+                if "Autoboot in 1 seconds" in line:
+                # if "Hit any key to stop autoboot" in line: # old prompt 
+                    print("U-Boot prompt detected, sending interrupt command.")
                     self.serial_conn.write(('ecsi25').encode())  # Send magic key to interrupt autoboot
                     self.status_text.config(text="U-Boot detected; device connected")
                     self.update_reconnect_indicator(True)
-                    self.connection_status = 1  # Mark as connected
+                    self.connection_status = True  # Mark as connected
                     self.terminal_state = "uboot"
                     # Enable all test buttons now that the device is connected
                     for test in self.tests:
