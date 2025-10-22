@@ -259,10 +259,9 @@ class HardwareTestApp:
         # Clear the log widget after the test completes.
         self.clear_log()
 
-        # Commenting for the time being
-        # if selected_test["os"] == "uboot" and self.terminal_state != "uboot":
-        #     self.os_selection_popup(test_name, "U-Boot")
-        #     return
+        if selected_test["os"] == "uboot" and self.terminal_state != "uboot":
+            self.os_selection_popup(test_name, "U-Boot")
+            return
         
         if selected_test["os"] == "openwrt" and self.terminal_state != "linux":
             self.os_selection_popup(test_name, "OpenWRT")
