@@ -11,6 +11,8 @@ from help_gui import HelpCenter
 from _version import __version__
 from mac_generator import MACGeneratorFrame
 from log import logger,initialize_logging # Custom logging setup
+# import re
+import time
 
 # Load configuration file
 cfg = configparser.ConfigParser()
@@ -46,15 +48,15 @@ class HardwareTestApp:
         self.test_results = {}
         # Test definitions are stored here along with the reference to the test class.
         self.tests = [
-            {"name": "Ethernet Test", "requires_input": False, "class": Eth0Test},
-            {"name": "RTC Test", "requires_input": False, "class": RTCTest},
-            {"name": "Xbee Test", "requires_input": False, "class": XbeeTest},
-            {"name": "Battery Test", "requires_input": False, "class": BatteryTest},
-            {"name": "Relay Test", "requires_input": True, "class": RelayTest},
-            {"name": "SIM Test", "requires_input": False, "class": SIMTest},
-            {"name": "USB Test", "requires_input": False, "class": USBTest},
-            {"name": "WiFi Test", "requires_input": False, "class": WiFiTest},
-            {"name": "BLE Test", "requires_input": True, "class": BLETest},
+            {"name": "Ethernet Test", "requires_input": False, "os":"uboot", "class": Eth0Test},
+            {"name": "RTC Test", "requires_input": False, "os":"uboot", "class": RTCTest},
+            {"name": "Xbee Test", "requires_input": False,  "os":"uboot","class": XbeeTest},
+            {"name": "Battery Test", "requires_input": False, "os":"uboot", "class": BatteryTest},
+            {"name": "Relay Test", "requires_input": True, "os":"uboot", "class": RelayTest},
+            {"name": "USB Test", "requires_input": False, "os":"openwrt", "class": USBTest},
+            {"name": "WiFi Test", "requires_input": False, "os":"openwrt", "class": WiFiTest},
+            {"name": "BLE Test", "requires_input": True, "os":"openwrt", "class": BLETest},
+            {"name": "SIM Test", "requires_input": False, "os":"openwrt", "class": SIMTest},
             # {"name": "Button Test", "requires_input": False, "class": ButtonTest},
         ]
         
@@ -65,6 +67,9 @@ class HardwareTestApp:
         self.help_window = None
         # single-instance popup reference
         self.mac_window = None
+        # DuT connection status 
+        self.connection_status = False
+        self.terminal_state = "Disconnected"  # "Disconnected", "Uboot", "Linux"
         
         # Serial connection handle (used for GUI-based serial connection monitoring)
         self.serial_conn = None
@@ -215,6 +220,31 @@ class HardwareTestApp:
         self.log_text.configure(state=tk.NORMAL)
         self.log_text.delete("1.0", tk.END)
         self.log_text.configure(state=tk.DISABLED)
+        
+    def os_selection_popup(self, test_name, os_name):
+        if self.serial_conn is None:
+            logger.error("Serial connection not established.")
+            messagebox.showerror("Error", "Serial connection not established.")
+            return
+        
+        response = messagebox.askyesno("Confirm", f"{test_name} requires the device to be in {os_name}. Proceed ?")
+        if response:
+            # User clicked Yes
+            if os_name == "U-Boot":
+                self.serial_conn.write(b'reboot\r\n')
+                time.sleep(1)  # Wait for reboot to start
+                self.check_uboot_prompt()
+            elif os_name == "OpenWRT":
+                self.serial_conn.write(b'boot\r\n')
+                time.sleep(1)  # Wait for boot to start
+                self.check_openwrt_prompt()
+            else:
+                logger.error(f"Unknown OS name: {os_name}")
+                return
+        else:
+            # User clicked No
+            # Do nothing (popup closes automatically)
+            print("User chose No — API not called.")
     
     def run_test(self, test_name):
         """
@@ -228,6 +258,14 @@ class HardwareTestApp:
         
         # Clear the log widget after the test completes.
         self.clear_log()
+
+        if selected_test["os"] == "uboot" and self.terminal_state != "uboot":
+            self.os_selection_popup(test_name, "U-Boot")
+            return
+        
+        if selected_test["os"] == "openwrt" and self.terminal_state != "linux":
+            self.os_selection_popup(test_name, "OpenWRT")
+            return
 
         self.status_label.config(text=f"Running {test_name}...")
         if selected_test["requires_input"]:
@@ -663,6 +701,28 @@ class HardwareTestApp:
         """Update the reconnect indicator (green if connected, red if not)."""
         color = "green" if connected else "red"
         self.reconnect_indicator.itemconfig(self.indicator_circle, fill=color)
+    
+    def check_openwrt_prompt(self):
+        """Wait for the OpenWRT prompt to appear on the serial console.
+        When detected, update the status to 'device connected'."""
+        if self.serial_conn and self.serial_conn.in_waiting:
+            try:
+                line = self.serial_conn.readline().decode("utf-8", errors="ignore")
+                if "root@" in line or "# " in line:
+                    self.status_text.config(text="OpenWRT detected; device connected")
+                    self.update_reconnect_indicator(True)
+                    self.connection_status = 1  # Mark as connected
+                    self.terminal_state = "linux"
+                    # Enable all test buttons now that the device is connected
+                    for test in self.tests:
+                        test_name = test["name"]
+                        btn = self.test_buttons.get(test_name)
+                        if btn:
+                            btn.config(state=tk.ACTIVE)
+                    return  # Exit after successful connection
+            except Exception as e:
+                print("Error reading serial:", e)
+        self.root.after(100, self.check_openwrt_prompt)
     
     def check_uboot_prompt(self):
         """

@@ -213,25 +213,25 @@ class UBootTester:
             return False
         
 # SIM tester
-    def run_sim_test_case(self, setup_cmds, test_cmd, expect, shell_prompt, wait_time=10):
+    def run_sim_test_case(self): #, setup_cmds, test_cmd, expect, shell_prompt, wait_time=10):
         # 1) Issue the boot command
-        self._log(f">>> Sending boot command\n")
-        self.ser.write((test_cmd + '\r\n').encode())
-        time.sleep(0.5)  # Guard time
+        # self._log(f">>> Sending boot command\n")
+        # self.ser.write((test_cmd + '\r\n').encode())
+        # time.sleep(0.5)  # Guard time
         
-        # 2) Wait for OpenWRT to finish loading modules
-        self._log(">>> Waiting for OpenWRT modules to finish loading...\n")
-        if not self._wait_for_expected(expect, timeout=300):
-            self._log(">>> ERROR: Timed out waiting for kmodloader\n")
-            return False
+        # # 2) Wait for OpenWRT to finish loading modules
+        # self._log(">>> Waiting for OpenWRT modules to finish loading...\n")
+        # if not self._wait_for_expected(expect, timeout=300):
+        #     self._log(">>> ERROR: Timed out waiting for kmodloader\n")
+        #     return False
 
-        # 3) Get a shell prompt
-        self._log(">>> Sending Enter to get shell prompt...\n")
-        self.ser.write(b'\r\n')
-        # Wait for shell prompt
-        if not self._wait_for_expected(shell_prompt, timeout=120):
-            self._log(">>> ERROR: Timed out waiting for shell prompt\n")
-            return False
+        # # 3) Get a shell prompt
+        # self._log(">>> Sending Enter to get shell prompt...\n")
+        # self.ser.write(b'\r\n')
+        # # Wait for shell prompt
+        # if not self._wait_for_expected(shell_prompt, timeout=120):
+        #     self._log(">>> ERROR: Timed out waiting for shell prompt\n")
+        #     return False
 
         # 4) Set up ttyUSB2 and send AT commands
         self._log(">>> Configuring /dev/ttyUSB2 and sending AT commands...\n")

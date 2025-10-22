@@ -141,14 +141,14 @@ class SIMTest(UBootTester):
         super().__init__(port=port, debug=debug, log_callback=log_callback)
         logger.info("Initializing SIM Test")
         self.setup_cmds = []           # No extra setup needed
-        self.test_cmd = "boot"         # U-Boot boot command
-        self.expect  = "kmodloader: done loading kernel modules from /etc/modules.d/*"
-        self.shell_prompt = "root@(none):"  # Adjust based on your DUT's prompt
+        # self.test_cmd = "boot"         # U-Boot boot command
+        # self.expect  = "kmodloader: done loading kernel modules from /etc/modules.d/*"
+        # self.shell_prompt = "root@(none):"  # Adjust based on your DUT's prompt
 
     def run(self):
         try:
             self.connect()
-            success = self.run_sim_test_case(self.setup_cmds,  self.test_cmd, self.expect, self.shell_prompt, 10)
+            success = self.run_sim_test_case() #,  self.test_cmd, self.expect, self.shell_prompt, 10)
         except Exception as e:
             logger.exception("Error during SIM test:")
             success = False
