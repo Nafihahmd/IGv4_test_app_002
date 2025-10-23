@@ -12,8 +12,13 @@ from _version import __version__
 from mac_generator import MACGeneratorFrame
 from log import logger,initialize_logging # Custom logging setup
 # import re
-import time
+# import time
 
+# Global configurations
+patter_state = 0;
+OPENWRT_PROMPT = "kmodloader: done loading kernel modules"
+# UBOOT_PROMPT = "Hit any key to stop autoboot"       # old prompt
+UBOOT_PROMPT = "Autoboot in 1 seconds"               # new prompt
 # Load configuration file
 cfg = configparser.ConfigParser()
 path = os.path.join(user_config_dir("IGTestApp","ECSI"), "settings.ini")
@@ -53,9 +58,9 @@ class HardwareTestApp:
             {"name": "Xbee Test", "requires_input": False,  "os":"uboot","class": XbeeTest},
             {"name": "Battery Test", "requires_input": False, "os":"uboot", "class": BatteryTest},
             {"name": "Relay Test", "requires_input": True, "os":"uboot", "class": RelayTest},
-            {"name": "USB Test", "requires_input": False, "os":"openwrt", "class": USBTest},
-            {"name": "WiFi Test", "requires_input": False, "os":"openwrt", "class": WiFiTest},
             {"name": "BLE Test", "requires_input": True, "os":"openwrt", "class": BLETest},
+            {"name": "WiFi Test", "requires_input": False, "os":"openwrt", "class": WiFiTest},
+            {"name": "USB Test", "requires_input": False, "os":"openwrt", "class": USBTest},
             {"name": "SIM Test", "requires_input": False, "os":"openwrt", "class": SIMTest},
             # {"name": "Button Test", "requires_input": False, "class": ButtonTest},
         ]
@@ -231,12 +236,25 @@ class HardwareTestApp:
         if response:
             # User clicked Yes
             if os_name == "U-Boot":
-                self.serial_conn.write(b'reboot\r\n')
-                time.sleep(1)  # Wait for reboot to start
-                self.check_uboot_prompt()
+                try:
+                    self.status_text.config(text="Sending reboot command to device...")
+                    self.serial_conn.write(b'reboot\r\n')
+                    self.serial_conn.flush()                
+                    self.check_uboot_prompt()
+                except Exception as e:
+                    messagebox.showerror("Serial Error", f"Failed to send reboot command: {e}")
+                    self.status_text.config(text="Failed to send reboot command.")
+                    return
             elif os_name == "OpenWRT":
-                self.serial_conn.write(b'boot\r\n')
-                time.sleep(1)  # Wait for boot to start
+                try:
+                    self.status_text.config(text="Sending boot command to device...")
+                    self.serial_conn.write(b'boot\r\n')
+                    self.serial_conn.flush()
+                
+                except Exception as e:
+                    messagebox.showerror("Serial Error", f"Failed to send boot command: {e}")
+                    self.status_text.config(text="Failed to send boot command.")
+                    return
                 self.check_openwrt_prompt()
             else:
                 logger.error(f"Unknown OS name: {os_name}")
@@ -703,26 +721,49 @@ class HardwareTestApp:
         self.reconnect_indicator.itemconfig(self.indicator_circle, fill=color)
     
     def check_openwrt_prompt(self):
-        """Wait for the OpenWRT prompt to appear on the serial console.
-        When detected, update the status to 'device connected'."""
-        if self.serial_conn and self.serial_conn.in_waiting:
+        # print("Checking for OpenWRT prompt...")
+        p1 = '.'
+        p2 = '..'
+        p3 = '...'
+        global patter_state;
+        patter_state = patter_state + 1 if patter_state < 3 else 0
+        # print("Device connected to OpenWRT.")
+        self.status_label.config(text=f"Checking for OpenWRT prompt{p1 if patter_state == 0 else p2 if patter_state == 1 else p3}")
+        if self.serial_conn:
             try:
-                line = self.serial_conn.readline().decode("utf-8", errors="ignore")
-                if "root@" in line or "# " in line:
-                    self.status_text.config(text="OpenWRT detected; device connected")
+                line = self.serial_conn.readline().decode("utf-8", errors="ignore").strip()
+                if line == "":
+                    # If the line is empty, skip processing
+                    self.root.after(50, self.check_openwrt_prompt)
+                    return
+                
+                print(f"debug:{line}")
+                if OPENWRT_PROMPT in line:
+                    print("OpenWRT prompt detected, opening console.")
+                    self.serial_conn.write(('\r\n').encode())
+                    self.status_text.config(text="Openwrt detected; device connected")
                     self.update_reconnect_indicator(True)
                     self.connection_status = True  # Mark as connected
                     self.terminal_state = "linux"
                     # Enable all test buttons now that the device is connected
-                    for test in self.tests:
-                        test_name = test["name"]
-                        btn = self.test_buttons.get(test_name)
-                        if btn:
-                            btn.config(state=tk.ACTIVE)
+                    # for test in self.tests:
+                    #     test_name = test["name"]
+                    #     btn = self.test_buttons.get(test_name)
+                    #     if btn:
+                    #         btn.config(state=tk.ACTIVE)
+                    # return  # Exit after successful connection
+                    self.status_label.config(text="Now you can run tests.")
                     return  # Exit after successful connection
+                
+                self.root.after(200, self.check_openwrt_prompt)
             except Exception as e:
                 print("Error reading serial:", e)
-        self.root.after(100, self.check_openwrt_prompt)
+                self.root.after(200, self.check_openwrt_prompt)
+        else:
+            # If no data is available, check again after a short delay
+            print("No serial connection available, retrying...")
+            self.root.after(200, self.check_openwrt_prompt)
+
     
     def check_uboot_prompt(self):
         """
@@ -735,7 +776,7 @@ class HardwareTestApp:
             # print("Device connected to U-Boot.")
             try:
                 line = self.serial_conn.readline().decode("utf-8", errors="ignore")
-                if "Autoboot in 1 seconds" in line:
+                if UBOOT_PROMPT in line:
                 # if "Hit any key to stop autoboot" in line: # old prompt 
                     print("U-Boot prompt detected, sending interrupt command.")
                     self.serial_conn.write(('ecsi25').encode())  # Send magic key to interrupt autoboot
@@ -748,7 +789,7 @@ class HardwareTestApp:
                         test_name = test["name"]
                         btn = self.test_buttons.get(test_name)
                         if btn:
-                            btn.config(state=tk.ACTIVE)
+                            btn.config(state=tk.NORMAL)
                     return  # Exit after successful connection
             except Exception as e:
                 print("Error reading serial:", e)
