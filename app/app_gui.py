@@ -17,6 +17,7 @@ from log import logger,initialize_logging # Custom logging setup
 # Global configurations
 patter_state = 0;
 OPENWRT_PROMPT = "kmodloader: done loading kernel modules"
+OPENWRT_PROMPT_2 = "nuc980-emac0 b0012000.emac0: eth0 is"
 # UBOOT_PROMPT = "Hit any key to stop autoboot"       # old prompt
 UBOOT_PROMPT = "Autoboot in 1 seconds"               # new prompt
 # Load configuration file
@@ -729,6 +730,8 @@ class HardwareTestApp:
         patter_state = patter_state + 1 if patter_state < 3 else 0
         # print("Device connected to OpenWRT.")
         self.status_label.config(text=f"Checking for OpenWRT prompt{p1 if patter_state == 0 else p2 if patter_state == 1 else p3}")
+        color = "yellow" if patter_state == 0 else "orange" if patter_state == 1 else "red"
+        self.reconnect_indicator.itemconfig(self.indicator_circle, fill=color)
         if self.serial_conn:
             try:
                 line = self.serial_conn.readline().decode("utf-8", errors="ignore").strip()
@@ -738,7 +741,7 @@ class HardwareTestApp:
                     return
                 
                 print(f"debug:{line}")
-                if OPENWRT_PROMPT in line:
+                if OPENWRT_PROMPT in line or line.startswith(OPENWRT_PROMPT_2):
                     print("OpenWRT prompt detected, opening console.")
                     self.serial_conn.write(('\r\n').encode())
                     self.status_text.config(text="Openwrt detected; device connected")
@@ -755,14 +758,14 @@ class HardwareTestApp:
                     self.status_label.config(text="Now you can run tests.")
                     return  # Exit after successful connection
                 
-                self.root.after(200, self.check_openwrt_prompt)
+                self.root.after(100, self.check_openwrt_prompt)
             except Exception as e:
                 print("Error reading serial:", e)
-                self.root.after(200, self.check_openwrt_prompt)
+                self.root.after(100, self.check_openwrt_prompt)
         else:
             # If no data is available, check again after a short delay
             print("No serial connection available, retrying...")
-            self.root.after(200, self.check_openwrt_prompt)
+            self.root.after(100, self.check_openwrt_prompt)
 
     
     def check_uboot_prompt(self):
