@@ -192,16 +192,43 @@ class WiFiTest(UBootTester):
         # Define the setup and test commands for a WiFi test
         self.setup_cmds = [
             'devmem 0xB00040B0 32 0x02000000', # Reset Esp32
-            "echo -e 'network={{\n    ssid=\"{0}\"\n    psk=\"{1}\"\n    key_mgmt={2}\n}}' > /tmp/mywpa.conf".format(
-        self.wifi_ssid, self.wifi_password, self.wifi_security
-        ),  # create temporary wpa config
-            'killall wpa_supplicant 2>/dev/null || true',  # kill any running wpa_supplicant on wlan0
-            'wpa_supplicant -B -i wlan0 -c /tmp/mywpa.conf',               # run in background
-            'udhcpc -i wlan0 -q -t 5',  # request an IP via udhcpc (OpenWrt's DHCP client)
+            '''cat > /etc/config/network << 'EOF'
+config interface 'loopback'
+        option ifname 'lo'
+        option proto 'static'
+        option netmask '255.0.0.0'
+
+config interface 'lan'
+        option ifname 'eth0'
+        option proto 'dhcp'
+        option netmask '255.255.255.0'
+
+config interface 'wwan'
+        option proto 'dhcp'
+EOF''',
+            f'''cat > /etc/config/wireless <<EOF
+config wifi-device 'radio0'
+        option type 'mac80211'
+        option path 'platform/ahb/b0019000.fmi/mmc_host/mmc1/mmc1:0001/mmc1:0001:1'
+        option band '2g'
+        option country 'IN'
+        option cell_density '0'
+        option legacy_rates '1'
+        option channel '11'
+
+config wifi-iface 'wifinet0'
+        option device 'radio0'
+        option mode 'sta'
+        option network 'wwan'
+        option ssid '{wifi_ssid}'
+        option encryption 'psk2'
+        option key '{wifi_password}'
+EOF''',
+            'wifi',               # run in background
+            # 'udhcpc -i wlan0 -q -t 5',  # request an IP via udhcpc (OpenWrt's DHCP client)
         ]
         self.test_cmd =['iw dev wlan0 link', # check connection status
                         'ifconfig wlan0',
-                        'killall wpa_supplicant',
                         'ifdown wlan0 2>/dev/null || true',  # bring down wlan0 interface
                         ]
         self.expect = ['Connected to',]

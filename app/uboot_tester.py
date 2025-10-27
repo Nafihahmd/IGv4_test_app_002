@@ -290,12 +290,29 @@ class UBootTester:
 # WiFi Tester
     def run_wifi_test_case(self, setup_cmds, test_cmd, expect, wait_time=10):
         self._log("Sending setup commands:")
+        self.ser.write((setup_cmds[0] + '\r\n').encode())
+        time.sleep(10)  # wait for command to execute
+        output = ""
+        check_wlan_is_up = 'ifconfig | grep wlan0'
+        self.ser.write((check_wlan_is_up + '\r\n').encode())
+        time.sleep(1)  # wait for command to execute
+        # if self.ser.in_waiting > 0:
+        #     output = self.ser.read(self.ser.in_waiting).decode(errors='ignore')
+        while "Link encap" not in output:
+            if self.ser.in_waiting > 0:
+                output = self.ser.read(self.ser.in_waiting).decode(errors='ignore')
+            self._log("Waiting for wlan0 status...\n")
+            self.ser.write((check_wlan_is_up + '\r\n').encode())
+            time.sleep(1)  # wait for command to execute
+            print(output)
+            time.sleep(1)  # wait for command to execute
+        
         for cmd in setup_cmds:
             self._log(f"  -> {cmd}")
             self.ser.write((cmd + '\r\n').encode())
             time.sleep(2) # wait for command to execute
             
-        time.sleep(10.0)  # Guard time
+        time.sleep(1.0)  # Guard time
         self.ser.reset_input_buffer()   # flush prior bytes
         self._log(f"\nRunning test commands:")
         for cmd in test_cmd[:2]:
@@ -311,6 +328,25 @@ class UBootTester:
         
         # self._log(f"Output received:\n{output}\n\n")   #Uncomment for debugging
         results = self.check_wifi_status(output)
+
+        start_time = int(round(time.time() * 1000))
+        current_time = 0
+        while not results:
+            self._log("\n\nRe-running WiFi status check...\n")
+            self.ser.write((test_cmd[0] + '\r\n').encode())
+            time.sleep(1)  # wait for command to execute
+            self.ser.write((test_cmd[1] + '\r\n').encode())
+            time.sleep(3)  # wait for command to execute
+            
+            output = ""
+            if self.ser.in_waiting > 0:
+                output = self.ser.read(self.ser.in_waiting).decode(errors='ignore')
+            
+            results = self.check_wifi_status(output)
+            current_time = (int(round(time.time() * 1000)) - start_time) / 1000
+            if current_time >= 120:
+                self._log("WiFi test timed out\n")
+                break
 
         for cmd in test_cmd[2:]:
             self._log(f"  -> {cmd}")

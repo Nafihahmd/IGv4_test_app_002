@@ -16,7 +16,7 @@ from log import logger,initialize_logging # Custom logging setup
 
 # Global configurations
 patter_state = 0;
-OPENWRT_PROMPT = "kmodloader: done loading kernel modules"
+OPENWRT_PROMPT = "Please press Enter to activate this console."
 OPENWRT_PROMPT_2 = "nuc980-emac0 b0012000.emac0: eth0 is"
 # UBOOT_PROMPT = "Hit any key to stop autoboot"       # old prompt
 UBOOT_PROMPT = "Autoboot in 1 seconds"               # new prompt
