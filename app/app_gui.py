@@ -11,6 +11,7 @@ from help_gui import HelpCenter
 from _version import __version__
 from mac_generator import MACGeneratorFrame
 from log import logger,initialize_logging # Custom logging setup
+from serial_autoconnect import SerialAutoConnector
 # import re
 # import time
 
@@ -23,6 +24,13 @@ UBOOT_PROMPT = "Autoboot in 1 seconds"               # new prompt
 # Load configuration file
 cfg = configparser.ConfigParser()
 path = os.path.join(user_config_dir("IGTestApp","ECSI"), "settings.ini")
+
+# FTDI
+MY_VID = 0x0403
+MY_PID = 0x6001
+# CH340
+# MY_VID = 0x1a86
+# MY_PID = 0x7523
 
 class HardwareTestApp:
     def __init__(self, root):
@@ -85,6 +93,22 @@ class HardwareTestApp:
         
         # Begin periodic serial checking via tkinter's after() method (no threading)
         self.check_serial()
+        self.connector = SerialAutoConnector(
+            vid_pid=(MY_VID, MY_PID),
+            baudrate=115200,
+            timeout=0.1,
+            reconnect_interval_ms=500,   # use reconnect_interval for the full connector
+            prompt_patterns=[r"=>", r"U-Boot"],
+            on_connected=self.serial_connection_callback,      # BOUND method
+            on_disconnected=self.serial_disconnection_callback  # BOUND method
+        )
+
+        # Start polling immediately on the same Tk root (no threading)
+        # start_polling uses root.after internally
+        self.connector.start_polling(self.root)
+
+        # Ensure connector stopped when the window closes
+        self.root.protocol("WM_DELETE_WINDOW", self._on_close)
     
     def create_menu(self):
         """Creates a File menu with options to open/save results, configure test parameters, and access help."""
@@ -779,10 +803,14 @@ class HardwareTestApp:
             # print("Device connected to U-Boot.")
             try:
                 line = self.serial_conn.readline().decode("utf-8", errors="ignore")
+                # print(f"debug:{line}")
                 if UBOOT_PROMPT in line:
                 # if "Hit any key to stop autoboot" in line: # old prompt 
                     print("U-Boot prompt detected, sending interrupt command.")
                     self.serial_conn.write(('ecsi25').encode())  # Send magic key to interrupt autoboot
+                    # self.serial_conn.flush()
+                    # self.serial_conn.writelines(('ecsi25').encode())  # Send magic key to interrupt autoboot
+                    # self.serial_conn.write(b'\r\n')
                     self.status_text.config(text="U-Boot detected; device connected")
                     self.update_reconnect_indicator(True)
                     self.connection_status = True  # Mark as connected
@@ -873,6 +901,54 @@ class HardwareTestApp:
     #     except Exception as e:
     #         print(f"Error detecting terminal state: {e}")
     #         return "unknown"
+    def serial_connection_callback(self, conn):
+        """Callback invoked when SerialAutoConnector establishes a connection."""
+        print("Serial connection callback invoked.")
+        self.serial_conn = conn
+        self.serial_port = conn.port
+        self.status_text.config(text=f"Connected to {conn.port} @ {conn.baudrate}")
+        self.update_reconnect_indicator(True)
+        self.connection_status = True  # Mark as connected
+        logger.info(f"Serial connection established on {conn.port} at {conn.baudrate}")
+        
+        print("terminal_state:", self.terminal_state)
+        if self.terminal_state == "Disconnected" or self.terminal_state == "uboot":
+            print("Checking for U-Boot prompt...")            
+            self.status_text.config(text="Waiting for U-Boot prompt...")
+            self.reconnect_indicator.itemconfig(self.indicator_circle, fill="yellow")
+            self.check_uboot_prompt()
+        # self.terminal_state = "unknown"
+        # Enable all test buttons now that the device is connected
+        # for test in self.tests:
+        #     test_name = test["name"]
+        #     btn = self.test_buttons.get(test_name)
+        #     if btn:
+        #         btn.config(state=tk.NORMAL)
+    
+    def serial_disconnection_callback(self):
+        """Callback invoked when SerialAutoConnector loses the connection."""
+        print("Serial disconnection callback invoked.")
+        self.serial_conn = None
+        self.status_text.config(text="Disconnected")
+        self.update_reconnect_indicator(False)
+        self.connection_status = False
+        self.terminal_state = "Disconnected"
+        # Disable all test buttons since device is disconnected
+        for test in self.tests:
+            test_name = test["name"]
+            btn = self.test_buttons.get(test_name)
+            if btn:
+                btn.config(state=tk.DISABLED)
+        logger.warning("Serial connection lost")
+
+    # --- cleanup handler ---
+    def _on_close(self):
+        try:
+            if getattr(self, "connector", None):
+                self.connector.stop()
+        except Exception:
+            logger.exception("Error stopping connector")
+        self.root.destroy()
 
 if __name__ == "__main__":
     success = initialize_logging(clean_logs=True)
