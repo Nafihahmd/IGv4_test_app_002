@@ -290,11 +290,11 @@ class UBootTester:
 # WiFi Tester
     def run_wifi_test_case(self, setup_cmds, test_cmd, expect, wait_time=10):
         self._log("Sending setup commands:")
-        for cmd in setup_cmds[:3]:
-            self._log(f"  -> {cmd}")
-            self.ser.write((cmd + '\r\n').encode())
-            time.sleep(1) # wait for command to execute
-        time.sleep(5)  # wait for command to execute
+        # for cmd in setup_cmds[:3]:
+        #     self._log(f"  -> {cmd}")
+        #     self.ser.write((cmd + '\r\n').encode())
+        #     time.sleep(1) # wait for command to execute
+        # time.sleep(5)  # wait for command to execute
         output = ""
         check_wlan_is_up = 'ifconfig -a | grep wlan0'
         # turn_on_wlan0 = 'wifi'
@@ -313,12 +313,14 @@ class UBootTester:
             print(output)
             time.sleep(1)  # wait for command to execute
         
-        for cmd in setup_cmds[3:]:
+        self.ser.write((setup_cmds[0] + '\r\n').encode())
+        self._log(f"  -> {setup_cmds[0]}")
+        for cmd in setup_cmds[1:]:
             self._log(f"  -> {cmd}")
             self.ser.write((cmd + '\r\n').encode())
-            time.sleep(3) # wait for command to execute
+            time.sleep(10) # wait for command to execute
             
-        time.sleep(10)  # Guard time
+        # time.sleep(5)  # Guard time
         self.ser.reset_input_buffer()   # flush prior bytes
 
         self._log(f"\nRunning test commands:")

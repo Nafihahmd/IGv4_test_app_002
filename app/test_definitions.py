@@ -191,9 +191,9 @@ class WiFiTest(UBootTester):
         self.wifi_security = wifi_security  # Options: OPEN, WEP, WPA, WPA2
         # Define the setup and test commands for a WiFi test
         self.setup_cmds = [
-            'gpioset gpiochip0 66=0',  # Set ESP32 EN PIN low
-            'gpioset gpiochip0 66=1',  # Set ESP32 EN PIN high
-            'devmem 0xB00040B0 32 0x02000000', # Reset Esp32
+            # 'gpioset gpiochip0 66=0',  # Set ESP32 EN PIN low
+            # 'gpioset gpiochip0 66=1',  # Set ESP32 EN PIN high
+            # 'devmem 0xB00040B0 32 0x02000000', # Reset Esp32
             '''cat > /etc/config/network << 'EOF'
 config interface 'loopback'
         option ifname 'lo'
