@@ -757,46 +757,36 @@ class HardwareTestApp:
 
         if self.serial_conn:
             try:
-                found_prompt = False
-                # Read all available lines at once with larger buffer handling
-                bytes_available = self.serial_conn.in_waiting
-                if bytes_available > 0:
-                    # Read in chunks to avoid overwhelming the Pi
-                    max_read_size = 1024  # Limit read size for Pi
-                    data = self.serial_conn.read(min(bytes_available, max_read_size))
-                    lines = data.decode("utf-8", errors="ignore").splitlines()
-                    
-                    for line in lines:
-                        line = line.strip()
-                        if not line:
-                            continue
+                # found_prompt = False
+                # Read all available lines at once
+                line = self.serial_conn.readline().decode("utf-8", errors="ignore").strip()
+                print(f"debug:{line}")
+                while OPENWRT_PROMPT not in line:
+                    line = self.serial_conn.readline().decode("utf-8", errors="ignore").strip()
+                    if not line:
+                        print(".")
+                    else:
                         print(f"debug:{line}")
-                        if OPENWRT_PROMPT in line:
-                            print("OpenWRT prompt detected, opening console.")
-                            self.serial_conn.write('\r\n'.encode())
-                            self.serial_conn.flush()  # Force send
-                            self.status_text.config(text="Openwrt detected; device connected")
-                            self.update_reconnect_indicator(True)
-                            self.connection_status = True
-                            self.terminal_state = "linux"
-                            self.status_label.config(text="Now you can run tests.")
-                            found_prompt = True
-                            
-                            # Call bluetooth test
-                            time.sleep(1)  # wait for device to boot properly
-                            self.run_test("BLE Test")   # Automatically run BLE test after OpenWRT prompt detected
-                            break
-                
-                # Only schedule next check if we didn't find the prompt
-                if not found_prompt:
-                    self.root.after(100, self.check_openwrt_prompt)  # Increased delay for Pi
-                    
+                    if OPENWRT_PROMPT in line:
+                        print("OpenWRT prompt detected, opening console.")
+                        self.serial_conn.write('\r\n'.encode())
+                        self.status_text.config(text="Openwrt detected; device connected")
+                        self.update_reconnect_indicator(True)
+                        self.connection_status = True
+                        self.terminal_state = "linux"
+                        self.status_label.config(text="Now you can run tests.")
+
+                        # Call bluetooth test
+                        time.sleep(1)  # wait for device to boot properly
+                        self.run_test("BLE Test")   # Automatically run BLE test after OpenWRT prompt detected
+                        return  # Exit after successful connection
+                # self.root.after(50, self.check_openwrt_prompt)
             except Exception as e:
-                print(f"Error reading serial: {e}")
-                self.root.after(200, self.check_openwrt_prompt)  # Longer delay on error
+                print("Error reading serial:", e)
+                self.root.after(100, self.check_openwrt_prompt)
         else:
             print("No serial connection available, retrying...")
-            self.root.after(200, self.check_openwrt_prompt)
+            self.root.after(100, self.check_openwrt_prompt)
 
     
     def check_uboot_prompt(self):
