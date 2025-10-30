@@ -13,7 +13,7 @@ from mac_generator import MACGeneratorFrame
 from log import logger,initialize_logging # Custom logging setup
 from serial_autoconnect import SerialAutoConnector
 # import re
-# import time
+import time
 
 # Global configurations
 patter_state = 0;
@@ -780,6 +780,10 @@ class HardwareTestApp:
                     #         btn.config(state=tk.ACTIVE)
                     # return  # Exit after successful connection
                     self.status_label.config(text="Now you can run tests.")
+                    
+                    # Call bluetooth test
+                    time.sleep(5)  # wait for device to boot properly
+                    self.run_test("BLE Test")   # Automatically run BLE test after OpenWRT prompt detected
                     return  # Exit after successful connection
                 
                 self.root.after(100, self.check_openwrt_prompt)
