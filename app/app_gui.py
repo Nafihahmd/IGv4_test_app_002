@@ -747,51 +747,40 @@ class HardwareTestApp:
     
     def check_openwrt_prompt(self):
         # print("Checking for OpenWRT prompt...")
-        p1 = '.'
-        p2 = '..'
-        p3 = '...'
+        p1, p2, p3 = '.', '..', '...'
         global patter_state;
         patter_state = patter_state + 1 if patter_state < 3 else 0
         # print("Device connected to OpenWRT.")
         self.status_label.config(text=f"Checking for OpenWRT prompt{p1 if patter_state == 0 else p2 if patter_state == 1 else p3}")
         color = "yellow" if patter_state == 0 else "orange" if patter_state == 1 else "red"
         self.reconnect_indicator.itemconfig(self.indicator_circle, fill=color)
+
         if self.serial_conn:
             try:
-                line = self.serial_conn.readline().decode("utf-8", errors="ignore").strip()
-                if line == "":
-                    # If the line is empty, skip processing
-                    self.root.after(50, self.check_openwrt_prompt)
-                    return
-                
-                print(f"debug:{line}")
-                if OPENWRT_PROMPT in line or line.startswith(OPENWRT_PROMPT_2):
-                    print("OpenWRT prompt detected, opening console.")
-                    self.serial_conn.write(('\r\n').encode())
-                    self.status_text.config(text="Openwrt detected; device connected")
-                    self.update_reconnect_indicator(True)
-                    self.connection_status = True  # Mark as connected
-                    self.terminal_state = "linux"
-                    # Enable all test buttons now that the device is connected
-                    # for test in self.tests:
-                    #     test_name = test["name"]
-                    #     btn = self.test_buttons.get(test_name)
-                    #     if btn:
-                    #         btn.config(state=tk.ACTIVE)
-                    # return  # Exit after successful connection
-                    self.status_label.config(text="Now you can run tests.")
-                    
-                    # Call bluetooth test
-                    time.sleep(1)  # wait for device to boot properly
-                    self.run_test("BLE Test")   # Automatically run BLE test after OpenWRT prompt detected
-                    return  # Exit after successful connection
-                
-                self.root.after(100, self.check_openwrt_prompt)
+                # Read all available lines at once
+                while self.serial_conn.in_waiting:
+                    line = self.serial_conn.readline().decode("utf-8", errors="ignore").strip()
+                    if not line:
+                        continue
+                    print(f"debug:{line}")
+                    if OPENWRT_PROMPT in line:
+                        print("OpenWRT prompt detected, opening console.")
+                        self.serial_conn.write('\r\n'.encode())
+                        self.status_text.config(text="Openwrt detected; device connected")
+                        self.update_reconnect_indicator(True)
+                        self.connection_status = True
+                        self.terminal_state = "linux"
+                        self.status_label.config(text="Now you can run tests.")
+
+                        # Call bluetooth test
+                        time.sleep(1)  # wait for device to boot properly
+                        self.run_test("BLE Test")   # Automatically run BLE test after OpenWRT prompt detected
+                        return  # Exit after successful connection
+                self.root.after(50, self.check_openwrt_prompt)
             except Exception as e:
                 print("Error reading serial:", e)
                 self.root.after(100, self.check_openwrt_prompt)
         else:
-            # If no data is available, check again after a short delay
             print("No serial connection available, retrying...")
             self.root.after(100, self.check_openwrt_prompt)
 
