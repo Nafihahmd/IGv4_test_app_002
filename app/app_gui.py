@@ -36,7 +36,7 @@ class HardwareTestApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Hardware Test Application")
-        self.root.minsize(800, 600)
+        self.root.minsize(620, 440)
         
         # Default serial port (configurable via the menu)
         self.serial_port = "/dev/ttyUSB0"
